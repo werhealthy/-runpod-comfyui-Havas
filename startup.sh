@@ -141,8 +141,6 @@ declare -A REPOS=(
   ["was-node-suite-comfyui"]="https://github.com/WASasquatch/was-node-suite-comfyui.git"
   ["RES4LYF"]="https://github.com/ClownsharkBatwing/RES4LYF.git"
 )
-)
-
 for name in "${!REPOS[@]}"; do
   repo="${REPOS[$name]}"
   node_path="$NODES_DIR/$name"
