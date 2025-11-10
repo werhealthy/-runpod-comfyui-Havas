@@ -2,23 +2,6 @@
 
 echo "🚀 Avvio ComfyUI con download modelli..."
 
-# === INSTALLA JUPYTER ===
-echo ""
-echo "📓 Installazione Jupyter Lab..."
-pip install -q jupyterlab
-
-echo "🚀 Avvio Jupyter Lab su porta 8889..."
-nohup jupyter lab \
-    --ip=0.0.0.0 \
-    --port=8888 \
-    --no-browser \
-    --allow-root \
-    --NotebookApp.token='' \
-    --NotebookApp.password='' \
-    > /tmp/jupyter.log 2>&1 &
-
-echo "✅ Jupyter Lab disponibile su porta 8889"
-
 # === VERIFICA/INSTALLA COMFYUI ===
 COMFY_DIR="/tmp/comfyui"
 if [ ! -d "$COMFY_DIR" ]; then
@@ -224,8 +207,41 @@ fi
 workflow_count=$(ls -1 "$WORKFLOWS_DIR"/*.json 2>/dev/null | wc -l)
 echo "✓ Workflow caricati: $workflow_count"
 
+# === LORA PERSONALIZZATI ===
+echo ""
+echo "📦 Caricamento LoRA personalizzati da GitHub..."
 
+# URL base della cartella loras
+LORAS_BASE_URL="https://api.github.com/repos/werhealthy/-runpod-comfyui-Havas/contents/loras"
+LORAS_DIR="$MODELS_DIR/loras"
 
+# Installa jq se non presente
+command -v jq &> /dev/null || apt-get install -y -qq jq
+
+# Scarica lista file
+lora_files=$(curl -s "$LORAS_BASE_URL" | jq -r '.[] | select(.name | endswith(".safetensors")) | .name')
+
+if [ -z "$lora_files" ]; then
+    echo "  ℹ️  Nessun LoRA personalizzato trovato"
+else
+    echo "  ✅ Trovati $(echo "$lora_files" | wc -l) LoRA personalizzati"
+    echo "$lora_files" | while read lora_name; do
+        lora_url="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/loras/$lora_name"
+        lora_path="$LORAS_DIR/$lora_name"
+        
+        if [ -f "$lora_path" ]; then
+            echo "  ✓ Già presente: $lora_name"
+        else
+            echo "  📥 Scarico LoRA: $lora_name"
+            wget -q "$lora_url" -O "$lora_path" && \
+                echo "  ✅ Salvato: $lora_name" || \
+                echo "  ⚠️  Fallito: $lora_name"
+        fi
+    done
+fi
+
+lora_count=$(ls -1 "$LORAS_DIR"/*.safetensors 2>/dev/null | wc -l)
+echo "✓ LoRA disponibili: $lora_count"
 
 echo "✅ Tutti i modelli scaricati"
 # Crea extra_model_paths.yaml
@@ -250,4 +266,20 @@ python main.py \
     --enable-cors-header \
     --force-fp16 \
     --preview-method auto
+    
+# === INSTALLA JUPYTER ===
+echo ""
+echo "📓 Installazione Jupyter Lab..."
+pip install -q jupyterlab
 
+echo "🚀 Avvio Jupyter Lab su porta 8889..."
+nohup jupyter lab \
+    --ip=0.0.0.0 \
+    --port=8888 \
+    --no-browser \
+    --allow-root \
+    --NotebookApp.token='' \
+    --NotebookApp.password='' \
+    > /tmp/jupyter.log 2>&1 &
+
+echo "✅ Jupyter Lab disponibile su porta 8889"
