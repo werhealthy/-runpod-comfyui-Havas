@@ -11,6 +11,7 @@ CONTROLNET_DIR="$MODELS_DIR/controlnet"
 
 # Crea struttura directory
 mkdir -p "$CHECKPOINT_DIR" "$LORA_DIR" "$VAE_DIR" "$CONTROLNET_DIR"
+MODELS_LIST_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/modelli.txt"
 
 # Funzione per download con retry
 download_model() {
@@ -34,23 +35,72 @@ download_model() {
     return 1
 }
 
-# === SCARICA I TUOI MODELLI QUI ===
+# === SCARICA MODELLI DA FILE ===
 
-# Esempio: Stable Diffusion 1.5
-download_model \
-    "https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors" \
-    "$CHECKPOINT_DIR/sd15.safetensors"
+echo "📋 Scarico lista modelli da GitHub..."
+wget -q "$MODELS_LIST_URL" -O /tmp/modelli.txt || {
+    echo "❌ Impossibile scaricare modelli.txt"
+    exit 1
+}
 
-# Esempio: VAE
-download_model \
-    "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/resolve/main/vae-ft-mse-840000-ema-pruned.safetensors" \
-    "$VAE_DIR/vae-ft-mse.safetensors"
+echo "📦 Download modelli da lista..."
+while IFS='|' read -r url category filename; do
+    # Salta commenti e righe vuote
+    [[ "$url" =~ ^#.*$ ]] || [[ -z "$url" ]] && continue
+    
+    # Determina directory destinazione
+    case "$category" in
+        "diffusion_models/wan")
+            dest_dir="$MODELS_DIR/checkpoints"
+            mkdir -p "$dest_dir"
+            ;;
+        "loras")
+            dest_dir="$LORA_DIR"
+            ;;
+        "vae")
+            dest_dir="$VAE_DIR"
+            ;;
+        "text_encoders")
+            dest_dir="$MODELS_DIR/clip"
+            mkdir -p "$dest_dir"
+            ;;
+        "upscale_models")
+            dest_dir="$MODELS_DIR/upscale_models"
+            mkdir -p "$dest_dir"
+            ;;
+        *)
+            dest_dir="$MODELS_DIR/$category"
+            mkdir -p "$dest_dir"
+            ;;
+    esac
+    
+    download_model "$url" "$dest_dir/$filename"
+    
+done < /tmp/modelli.txt
 
 # === FINE DOWNLOAD MODELLI ===
 
 echo "✅ Tutti i modelli scaricati"
+# Crea extra_model_paths.yaml
+echo "⚙️  Configurazione percorsi modelli..."
+cat > /tmp/comfyui/extra_model_paths.yaml <<'EOF'
+runpod:
+    base_path: /tmp/comfyui/models/
+    checkpoints: checkpoints
+    unet: checkpoints
+    vae: vae
+    clip: clip
+    loras: loras
+    upscale_models: upscale_models
+EOF
 
 # Avvia ComfyUI
 cd /tmp/comfyui
 echo "🌐 ComfyUI in avvio su porta 8188..."
-python main.py --listen 0.0.0.0 --port 8188
+python main.py \
+    --listen 0.0.0.0 \
+    --port 8188 \
+    --enable-cors-header \
+    --force-fp16 \
+    --preview-method auto
+
