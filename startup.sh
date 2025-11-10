@@ -160,7 +160,7 @@ echo "📋 Caricamento Workflows da GitHub..."
 
 # Lista diretta dei workflow (più affidabile dell'API)
 WORKFLOW_URLS=(
-  "https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/workflows/Gen-image.json"
+  "https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/workflows/Gen_image.json"
   # Aggiungi qui altri workflow quando ne hai
 )
 
