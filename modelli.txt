@@ -1,1 +1,20 @@
-s
+# DIFFUSION MODELS (WAN 2.2 - FP8)
+https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors|diffusion_models/wan|wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors
+
+https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors|diffusion_models/wan|wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors
+
+# LORA
+https://civitai.com/api/download/models/2299345?type=Model&format=SafeTensor|loras|lenovo_ultrareal.safetensors
+
+https://huggingface.co/Patarapoom/model/resolve/main/Instareal_high.safetensors|loras|Instareal_high.safetensors
+
+https://huggingface.co/Patarapoom/model/resolve/main/Instareal_low.safetensors|loras|Instareal_low.safetensors
+
+# VAE
+https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors|vae|wan_2.1_vae.safetensors
+
+# TEXT ENCODERS
+https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors|text_encoders|umt5_xxl_fp8_e4m3fn_scaled.safetensors
+
+# UPSCALE MODELS
+https://huggingface.co/Kim2091/UltraSharp/resolve/ec88d4bb762c682bd5311fd1f77d41780d080b7e/4x-UltraSharp.safetensors|upscale_models|4x-UltraSharp.safetensors
