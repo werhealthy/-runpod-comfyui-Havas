@@ -1,13 +1,10 @@
 # DIFFUSION MODELS (WAN 2.2 - FP8)
 https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors|diffusion_models/wan|wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors
-
 https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors|diffusion_models/wan|wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors
 
 # LORA
 https://civitai.com/api/download/models/2299345?type=Model&format=SafeTensor|loras|lenovo_ultrareal.safetensors
-
 https://huggingface.co/Patarapoom/model/resolve/main/Instareal_high.safetensors|loras|Instareal_high.safetensors
-
 https://huggingface.co/Patarapoom/model/resolve/main/Instareal_low.safetensors|loras|Instareal_low.safetensors
 
 # VAE
@@ -18,3 +15,11 @@ https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_f
 
 # UPSCALE MODELS
 https://huggingface.co/Kim2091/UltraSharp/resolve/ec88d4bb762c682bd5311fd1f77d41780d080b7e/4x-UltraSharp.safetensors|upscale_models|4x-UltraSharp.safetensors
+
+# ===== CUSTOM NODES (Repository GitHub) =====
+https://github.com/rgthree/rgthree-comfy.git|node|rgthree-comfy
+https://github.com/ssitu/ComfyUI_UltimateSDUpscale.git|node|ComfyUI_UltimateSDUpscale
+https://github.com/ClownsharkBatwing/RES4LYF.git|node|RES4LYF
+https://github.com/giriss/comfy-image-saver.git|node|comfy-image-saver
+https://github.com/WASasquatch/was-node-suite-comfyui.git|node|was-node-suite-comfyui
+https://github.com/kijai/ComfyUI-KJNodes.git|node|ComfyUI-KJNodes
