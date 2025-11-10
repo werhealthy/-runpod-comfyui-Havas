@@ -88,7 +88,12 @@ wget -q "$MODELS_LIST_URL" -O /tmp/modelli.txt || {
 
 echo "📦 Download modelli da lista..."
 while IFS='|' read -r url category filename; do
-    ...
+    # Salta commenti (righe che iniziano con #)
+    [[ "$url" =~ ^[[:space:]]*# ]] && continue
+    # Salta righe vuote
+    [[ -z "$url" ]] && continue
+    
+    # Determina directory destinazione
     case "$category" in
         "diffusion_models/wan")
             dest_dir="$MODELS_DIR/checkpoints"  # Root checkpoints, non wan/
