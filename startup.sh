@@ -79,6 +79,51 @@ while IFS='|' read -r url category filename; do
 done < /tmp/modelli.txt
 
 # === FINE DOWNLOAD MODELLI ===
+# === CUSTOM NODES ===
+echo ""
+echo "🔌 Installazione Custom Nodes..."
+NODES_DIR="/tmp/comfyui/custom_nodes"
+mkdir -p "$NODES_DIR"
+
+# Rileggi il file modelli.txt per i custom nodes
+wget -q "$MODELS_LIST_URL" -O /tmp/modelli_nodes.txt 2>/dev/null || {
+    echo "⚠️  Riuso cache locale"
+    cp /tmp/modelli.txt /tmp/modelli_nodes.txt
+}
+
+while IFS='|' read -r url category name; do
+    # Salta tutto tranne i custom nodes
+    [[ "$url" =~ ^#.*$ ]] || [[ -z "$url" ]] && continue
+    [[ "$category" != "node" ]] && continue
+    
+    node_path="$NODES_DIR/$name"
+    
+    # Clone o skip se esiste
+    if [ ! -d "$node_path/.git" ]; then
+        echo "  📥 Clone: $name"
+        git clone --depth=1 "$url" "$node_path" || {
+            echo "  ⚠️  Clone fallito: $name"
+            continue
+        }
+    else
+        echo "  ✓ Già presente: $name"
+    fi
+    
+    # Installa requirements.txt
+    if [ -f "$node_path/requirements.txt" ]; then
+        echo "    📦 Installo dipendenze..."
+        pip install -q --no-cache-dir -r "$node_path/requirements.txt" 2>/dev/null || true
+    fi
+    
+    # Esegui install.py se presente
+    if [ -f "$node_path/install.py" ]; then
+        echo "    🔧 Eseguo install.py..."
+        (cd "$node_path" && python install.py 2>/dev/null) || true
+    fi
+    
+done < /tmp/modelli_nodes.txt
+
+echo "✓ Custom nodes installati"
 
 echo "✅ Tutti i modelli scaricati"
 # Crea extra_model_paths.yaml
