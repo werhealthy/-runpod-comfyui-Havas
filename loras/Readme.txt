@@ -1,0 +1,1 @@
+qui carica i lora
