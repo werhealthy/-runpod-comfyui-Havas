@@ -88,14 +88,13 @@ wget -q "$MODELS_LIST_URL" -O /tmp/modelli.txt || {
 
 echo "📦 Download modelli da lista..."
 while IFS='|' read -r url category filename; do
-    # Salta commenti e righe vuote
-    [[ "$url" =~ ^#.*$ ]] || [[ -z "$url" ]] && continue
-    
-    # Determina directory destinazione
+    ...
     case "$category" in
         "diffusion_models/wan")
-            dest_dir="$MODELS_DIR/checkpoints"
+            dest_dir="$MODELS_DIR/checkpoints"  # Root checkpoints, non wan/
             mkdir -p "$dest_dir"
+            # Rimuovi sottocartella dal filename se presente
+            filename=$(basename "$filename")
             ;;
         "loras")
             dest_dir="$LORA_DIR"
@@ -135,7 +134,8 @@ declare -A REPOS=(
   ["ComfyUI-Inspire-Pack"]="https://github.com/ltdrdata/ComfyUI-Inspire-Pack.git"
   ["comfy-image-saver"]="https://github.com/giriss/comfy-image-saver.git"
   ["was-node-suite-comfyui"]="https://github.com/WASasquatch/was-node-suite-comfyui.git"
-  ["ComfyUI-KJNodes"]="https://github.com/kijai/ComfyUI-KJNodes.git"
+  ["RES4LYF"]="https://github.com/ClownsharkBatwing/RES4LYF.git"
+)
 )
 
 for name in "${!REPOS[@]}"; do
