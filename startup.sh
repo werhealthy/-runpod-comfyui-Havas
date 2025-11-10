@@ -2,15 +2,41 @@
 
 echo "🚀 Avvio ComfyUI con download modelli..."
 
+# === VERIFICA/INSTALLA COMFYUI ===
+COMFY_DIR="/tmp/comfyui"
+if [ ! -d "$COMFY_DIR" ]; then
+    echo "⚠️  ComfyUI non trovato, clonazione in corso..."
+    git clone --depth 1 https://github.com/comfyanonymous/ComfyUI.git "$COMFY_DIR"
+    cd "$COMFY_DIR"
+    pip install --no-cache-dir -r requirements.txt
+else
+    echo "✓ ComfyUI già presente"
+    cd "$COMFY_DIR"
+fi
+
+# === INSTALLA COMFYUI MANAGER ===
+echo "🔧 Installazione ComfyUI Manager..."
+MANAGER_DIR="$COMFY_DIR/custom_nodes/ComfyUI-Manager"
+if [ ! -d "$MANAGER_DIR/.git" ]; then
+    echo "  📥 Clone ComfyUI-Manager..."
+    git clone --depth=1 https://github.com/ltdrdata/ComfyUI-Manager.git "$MANAGER_DIR"
+    if [ -f "$MANAGER_DIR/requirements.txt" ]; then
+        pip install -q --no-cache-dir -r "$MANAGER_DIR/requirements.txt"
+    fi
+else
+    echo "  ✓ ComfyUI-Manager già presente"
+fi
+
 # Directory modelli temporanee
 MODELS_DIR="/tmp/comfyui/models"
 CHECKPOINT_DIR="$MODELS_DIR/checkpoints"
 LORA_DIR="$MODELS_DIR/loras"
 VAE_DIR="$MODELS_DIR/vae"
 CONTROLNET_DIR="$MODELS_DIR/controlnet"
+WORKFLOWS_DIR="/tmp/comfyui/user/default/workflows"
 
 # Crea struttura directory
-mkdir -p "$CHECKPOINT_DIR" "$LORA_DIR" "$VAE_DIR" "$CONTROLNET_DIR"
+mkdir -p "$CHECKPOINT_DIR" "$LORA_DIR" "$VAE_DIR" "$CONTROLNET_DIR" "$WORKFLOWS_DIR"
 MODELS_LIST_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/modelli.txt"
 
 # Funzione per download con retry
@@ -82,48 +108,88 @@ done < /tmp/modelli.txt
 # === CUSTOM NODES ===
 echo ""
 echo "🔌 Installazione Custom Nodes..."
-NODES_DIR="/tmp/comfyui/custom_nodes"
+NODES_DIR="$COMFY_DIR/custom_nodes"
 mkdir -p "$NODES_DIR"
 
-# Rileggi il file modelli.txt per i custom nodes
-wget -q "$MODELS_LIST_URL" -O /tmp/modelli_nodes.txt 2>/dev/null || {
-    echo "⚠️  Riuso cache locale"
-    cp /tmp/modelli.txt /tmp/modelli_nodes.txt
-}
+# Array repository custom nodes con link corretti
+declare -A REPOS=(
+  ["rgthree-comfy"]="https://github.com/rgthree/rgthree-comfy.git"
+  ["ComfyUI_UltimateSDUpscale"]="https://github.com/ssitu/ComfyUI_UltimateSDUpscale.git"
+  ["ComfyUI-Inspire-Pack"]="https://github.com/ltdrdata/ComfyUI-Inspire-Pack.git"
+  ["comfy-image-saver"]="https://github.com/giriss/comfy-image-saver.git"
+  ["was-node-suite-comfyui"]="https://github.com/WASasquatch/was-node-suite-comfyui.git"
+  ["ComfyUI-KJNodes"]="https://github.com/kijai/ComfyUI-KJNodes.git"
+)
 
-while IFS='|' read -r url category name; do
-    # Salta tutto tranne i custom nodes
-    [[ "$url" =~ ^#.*$ ]] || [[ -z "$url" ]] && continue
-    [[ "$category" != "node" ]] && continue
-    
-    node_path="$NODES_DIR/$name"
-    
-    # Clone o skip se esiste
-    if [ ! -d "$node_path/.git" ]; then
-        echo "  📥 Clone: $name"
-        git clone --depth=1 "$url" "$node_path" || {
-            echo "  ⚠️  Clone fallito: $name"
-            continue
-        }
-    else
-        echo "  ✓ Già presente: $name"
-    fi
-    
-    # Installa requirements.txt
-    if [ -f "$node_path/requirements.txt" ]; then
-        echo "    📦 Installo dipendenze..."
-        pip install -q --no-cache-dir -r "$node_path/requirements.txt" 2>/dev/null || true
-    fi
-    
-    # Esegui install.py se presente
-    if [ -f "$node_path/install.py" ]; then
-        echo "    🔧 Eseguo install.py..."
-        (cd "$node_path" && python install.py 2>/dev/null) || true
-    fi
-    
-done < /tmp/modelli_nodes.txt
+for name in "${!REPOS[@]}"; do
+  repo="${REPOS[$name]}"
+  node_path="$NODES_DIR/$name"
+  
+  if [ ! -d "$node_path/.git" ]; then
+    echo "  📥 Clone: $name"
+    git clone --depth=1 "$repo" "$node_path" || {
+      echo "  ⚠️  Clone fallito: $name"
+      continue
+    }
+  else
+    echo "  ✓ Già presente: $name"
+  fi
+  
+  # Installa requirements.txt
+  if [ -f "$node_path/requirements.txt" ]; then
+    echo "    📦 Installo dipendenze per $name..."
+    pip install -q --no-cache-dir -r "$node_path/requirements.txt" 2>/dev/null || {
+      echo "    ⚠️  Alcune dipendenze fallite per $name"
+    }
+  fi
+  
+  # Esegui install.py se presente
+  if [ -f "$node_path/install.py" ]; then
+    echo "    🔧 Eseguo install.py per $name..."
+    (cd "$node_path" && python install.py 2>/dev/null) || {
+      echo "    ⚠️  install.py fallito per $name"
+    }
+  fi
+done
 
 echo "✓ Custom nodes installati"
+
+# === WORKFLOWS ===
+echo ""
+echo "📋 Caricamento Workflows da GitHub..."
+
+# URL base della cartella workflows su GitHub
+WORKFLOWS_BASE_URL="https://api.github.com/repos/werhealthy/-runpod-comfyui-Havas/contents/workflows"
+
+# Scarica lista file dalla cartella workflows
+echo "  📂 Recupero lista workflows..."
+workflow_files=$(curl -s "$WORKFLOWS_BASE_URL" | grep -o '"name":"[^"]*\.json"' | sed 's/"name":"//g' | sed 's/"//g')
+
+if [ -z "$workflow_files" ]; then
+    echo "  ⚠️  Nessun workflow trovato nella cartella workflows/"
+else
+    for workflow_name in $workflow_files; do
+        workflow_url="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/workflows/$workflow_name"
+        workflow_path="$WORKFLOWS_DIR/$workflow_name"
+        
+        if [ -f "$workflow_path" ]; then
+            echo "  ✓ Già presente: $workflow_name"
+            continue
+        fi
+        
+        echo "  📥 Scarico workflow: $workflow_name"
+        wget -q "$workflow_url" -O "$workflow_path" || {
+            echo "  ⚠️  Download fallito: $workflow_name"
+            continue
+        }
+        
+        echo "  ✅ Workflow salvato: $workflow_name"
+    done
+fi
+
+workflow_count=$(ls -1 "$WORKFLOWS_DIR"/*.json 2>/dev/null | wc -l)
+echo "✓ Workflow caricati: $workflow_count"
+
 
 echo "✅ Tutti i modelli scaricati"
 # Crea extra_model_paths.yaml
@@ -140,7 +206,7 @@ runpod:
 EOF
 
 # Avvia ComfyUI
-cd /tmp/comfyui
+cd "$COMFY_DIR"
 echo "🌐 ComfyUI in avvio su porta 8188..."
 python main.py \
     --listen 0.0.0.0 \
