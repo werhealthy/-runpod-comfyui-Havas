@@ -175,34 +175,52 @@ echo "✓ Custom nodes installati"
 echo ""
 echo "📋 Caricamento Workflows da GitHub..."
 
-# Lista diretta dei workflow (più affidabile dell'API)
-WORKFLOW_URLS=(
-  "https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/workflows/Gen_image.json"
-  # Aggiungi qui altri workflow quando ne hai
-)
+# URL base della cartella workflows
+WORKFLOWS_BASE_URL="https://api.github.com/repos/werhealthy/-runpod-comfyui-Havas/contents/workflows"
 
-workflow_count=0
+# Scarica lista file dalla cartella workflows usando jq per parsing JSON
+echo "  📂 Recupero lista workflows..."
 
-for workflow_url in "${WORKFLOW_URLS[@]}"; do
-    workflow_name=$(basename "$workflow_url")
-    workflow_path="$WORKFLOWS_DIR/$workflow_name"
+# Installa jq se non presente
+if ! command -v jq &> /dev/null; then
+    echo "  📦 Installo jq..."
+    apt-get update -qq && apt-get install -y -qq jq > /dev/null 2>&1
+fi
+
+# Scarica e parsea JSON con jq
+workflow_files=$(curl -s "$WORKFLOWS_BASE_URL" | jq -r '.[] | select(.name | endswith(".json")) | .name')
+
+if [ -z "$workflow_files" ]; then
+    echo "  ⚠️  Nessun workflow trovato nella cartella workflows/"
+    echo "  💡 Verifica: https://github.com/werhealthy/-runpod-comfyui-Havas/tree/main/workflows"
+else
+    echo "  ✅ Trovati workflow:"
+    echo "$workflow_files" | while read workflow_name; do
+        echo "    - $workflow_name"
+    done
     
-    if [ -f "$workflow_path" ]; then
-        echo "  ✓ Già presente: $workflow_name"
-        ((workflow_count++))
-        continue
-    fi
-    
-    echo "  📥 Scarico workflow: $workflow_name"
-    if wget -q "$workflow_url" -O "$workflow_path"; then
-        echo "  ✅ Workflow salvato: $workflow_name"
-        ((workflow_count++))
-    else
-        echo "  ⚠️  Download fallito: $workflow_name"
-    fi
-done
+    # Download workflows
+    echo "$workflow_files" | while read workflow_name; do
+        workflow_url="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/workflows/$workflow_name"
+        workflow_path="$WORKFLOWS_DIR/$workflow_name"
+        
+        if [ -f "$workflow_path" ]; then
+            echo "  ✓ Già presente: $workflow_name"
+            continue
+        fi
+        
+        echo "  📥 Scarico workflow: $workflow_name"
+        if wget -q "$workflow_url" -O "$workflow_path"; then
+            echo "  ✅ Workflow salvato: $workflow_name"
+        else
+            echo "  ⚠️  Download fallito: $workflow_name"
+        fi
+    done
+fi
 
+workflow_count=$(ls -1 "$WORKFLOWS_DIR"/*.json 2>/dev/null | wc -l)
 echo "✓ Workflow caricati: $workflow_count"
+
 
 
 
