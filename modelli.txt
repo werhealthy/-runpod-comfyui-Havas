@@ -1,6 +1,6 @@
 # DIFFUSION MODELS (WAN 2.2 - FP8)
-https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors|diffusion_models|wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors
-https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors|diffusion_models|wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors
+https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors|diffusion_models/wan|wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors
+https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors|diffusion_models/wan|wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors
 
 # LORA
 https://civitai.com/api/download/models/2299345?type=Model&format=SafeTensor|loras|lenovo_ultrareal.safetensors
