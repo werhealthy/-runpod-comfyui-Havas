@@ -13,6 +13,13 @@ else
     echo "✓ ComfyUI già presente"
     cd "$COMFY_DIR"
 fi
+echo "📥 Scarico lo script restart-comfyui.sh..."
+wget -q https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/scripts/restart-comfyui.sh -O /usr/local/bin/restart-comfyui.sh
+chmod +x /usr/local/bin/restart-comfyui.sh
+
+echo "🔧 Alias per restartcomfy..."
+echo "alias restartcomfy='/usr/local/bin/restart-comfyui.sh'" >> /root/.bashrc
+source /root/.bashrc
 
 # === INSTALLA COMFYUI MANAGER ===
 echo "🔧 Installazione ComfyUI Manager..."
