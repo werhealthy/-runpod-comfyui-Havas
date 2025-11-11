@@ -56,6 +56,7 @@ get_model_dir() {
         text_encoder) echo "$MODELS_DIR/clip" ;;
         upscale) echo "$MODELS_DIR/upscale_models" ;;
         controlnet) echo "$CONTROLNET_DIR" ;;
+         unet) echo "$MODELS_DIR/unet" ;;
         *) echo "$MODELS_DIR" ;;
     esac
 }
