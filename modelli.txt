@@ -2,7 +2,7 @@
 # Formato: nome_file|url_download|tipo
 # 
 # Tipi disponibili:
-#   checkpoint, lora, vae, text_encoder, upscale, controlnet
+#   checkpoint, lora, vae, text_encoder, upscale, controlnet, unet, clip
 
 # === DIFFUSION MODELS ===
 wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors|https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors|checkpoint
@@ -16,10 +16,22 @@ Stock Photography [Wan 2.2]|https://civitai-delivery-worker-prod.5ac0637cfd0766c
 Wan2.2-Lightning_high_noise_model.safetensors|https://huggingface.co/lightx2v/Wan2.2-Lightning/resolve/main/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors?download=true|lora
 Wan2.2-Lightning_low_noise_model.safetensors|https://huggingface.co/lightx2v/Wan2.2-Lightning/resolve/main/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors?download=true|lora
 WanVideo_comfy|https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_T2V_14B_lightx2v_cfg_step_distill_lora_rank32.safetensors?download=true|lora
+Qwen-Image-Lightning|https://huggingface.co/lightx2v/Qwen-Image-Lightning/resolve/main/Qwen-Image-Lightning-4steps-V1.0-bf16.safetensors|lora
+peteromallet/Qwen-Image-Edit-InSubject|https://huggingface.co/peteromallet/Qwen-Image-Edit-InSubject/resolve/main/InSubject-0.5.safetensors?download=true|lora
+Qwen-Image-Boreal|https://civitai.com/api/download/models/2181880?type=Model&format=SafeTensor|lora
+Studio Realism|https://civitai.com/api/download/models/2232791?type=Model&format=SafeTensor|lora
+next-scene-qwen-image-lora-2509|https://huggingface.co/lovis93/next-scene-qwen-image-lora-2509/resolve/main/next-scene_lora-v2-3000.safetensors?download=true|lora
+
+# === CLIP ===
+Qwen-Image_ComfyUI|https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors?download=true|clip
+
+# === UNET ===
+Qwen-Image-Edit-2509-Q5_0.gguf|https://huggingface.co/QuantStack/Qwen-Image-Edit-2509-GGUF/resolve/main/Qwen-Image-Edit-2509-Q5_0.gguf?download=true|unet
+
 
 # === VAE ===
 wan_2.1_vae.safetensors|https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors|vae
-
+Qwen-Image_ComfyUI|https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/vae/qwen_image_vae.safetensors?download=true|vae
 # === TEXT ENCODERS ===
 umt5_xxl_fp8_e4m3fn_scaled.safetensors|https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors|text_encoder
 
