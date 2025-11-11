@@ -200,10 +200,12 @@ runpod:
     base_path: /tmp/comfyui/models/
     checkpoints: checkpoints
     unet: checkpoints
+    diffusion_models: checkpoints
     vae: vae
     clip: clip
     loras: loras
     upscale_models: upscale_models
+    controlnet: controlnet
 EOF
 
 # Avvia ComfyUI
@@ -224,10 +226,14 @@ sleep 5
 # === INSTALLA JUPYTER ===
 echo ""
 echo "📓 Installazione Jupyter Lab..."
-pip install -q jupyterlab
+pip install -q jupyterlab jupyter-server jupyterlab-server
 
-echo "🚀 Avvio Jupyter Lab su porta 8889..."
-nohup jupyter lab \
+# Rebuild estensioni (corregge launcher error)
+echo "🔧 Build estensioni Jupyter..."
+jupyter lab build --dev-build=False --minimize=True 2>/dev/null || true
+
+echo "🚀 Avvio Jupyter Lab su porta 8888..."
+jupyter lab \
     --ip=0.0.0.0 \
     --port=8888 \
     --no-browser \
@@ -236,9 +242,6 @@ nohup jupyter lab \
     --NotebookApp.token='' \
     --NotebookApp.password='' \
     > /tmp/jupyter.log 2>&1 &
-
-
-echo "✅ Jupyter Lab disponibile su porta 8888"
 
 # === CREA ALIAS PER DOWNLOAD ON-DEMAND ===
 echo "🔧 Configurazione comandi rapidi..."
