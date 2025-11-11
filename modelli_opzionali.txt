@@ -1,0 +1,3 @@
+# ===== LORA PERSONALIZZATI (ON-DEMAND) =====
+# Formato: nome|url_huggingface|descrizione
+# Esempio: mio_lora_ritratti|https://huggingface.co/werhealthy/miei-lora/resolve/main/ritratti_v2.safetensors|LoRA per ritratti realistici
