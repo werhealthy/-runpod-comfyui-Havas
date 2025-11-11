@@ -1,5 +1,6 @@
 # ===== LORA PERSONALIZZATI (ON-DEMAND) =====
 # Formato: nome|url_huggingface|descrizione
 # Esempio: mio_lora_ritratti|https://huggingface.co/werhealthy/miei-lora/resolve/main/ritratti_v2.safetensors|LoRA per ritratti realistici
+# Usa download-lora nella console per visualizzarli
 Silvestri_001|https://huggingface.co/wwwerhealthy/HavasMODELS/resolve/main/silvestri_cital.safetensors?download=true|Peso Max
 Silvestri_002|https://huggingface.co/wwwerhealthy/HavasMODELS/resolve/main/silvestri_cital_000002500.safetensors?download=true|Peso Medio
