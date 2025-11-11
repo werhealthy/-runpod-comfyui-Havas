@@ -1,25 +1,23 @@
-# DIFFUSION MODELS (WAN 2.2 - FP8)
-https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors|diffusion_models/wan|wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors
-https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors|diffusion_models/wan|wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors
+# ===== MODELLI AUTO-DOWNLOAD =====
+# Formato: nome_file|url_download|tipo
+# 
+# Tipi disponibili:
+#   checkpoint, lora, vae, text_encoder, upscale, controlnet
 
-# LORA
-https://civitai.com/api/download/models/2299345?type=Model&format=SafeTensor|loras|lenovo_ultrareal.safetensors
-https://huggingface.co/Patarapoom/model/resolve/main/Instareal_high.safetensors|loras|Instareal_high.safetensors
-https://huggingface.co/Patarapoom/model/resolve/main/Instareal_low.safetensors|loras|Instareal_low.safetensors
+# === DIFFUSION MODELS ===
+wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors|https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors|checkpoint
+wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors|https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors|checkpoint
 
-# VAE
-https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors|vae|wan_2.1_vae.safetensors
+# === LORA ===
+lenovo_ultrareal.safetensors|https://civitai.com/api/download/models/2299345?type=Model&format=SafeTensor|lora
+Instareal_high.safetensors|https://huggingface.co/Patarapoom/model/resolve/main/Instareal_high.safetensors|lora
+Instareal_low.safetensors|https://huggingface.co/Patarapoom/model/resolve/main/Instareal_low.safetensors|lora
 
-# TEXT ENCODERS
-https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors|text_encoders|umt5_xxl_fp8_e4m3fn_scaled.safetensors
+# === VAE ===
+wan_2.1_vae.safetensors|https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors|vae
 
-# UPSCALE MODELS
-https://huggingface.co/Kim2091/UltraSharp/resolve/ec88d4bb762c682bd5311fd1f77d41780d080b7e/4x-UltraSharp.safetensors|upscale_models|4x-UltraSharp.safetensors
+# === TEXT ENCODERS ===
+umt5_xxl_fp8_e4m3fn_scaled.safetensors|https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors|text_encoder
 
-# ===== CUSTOM NODES (Repository GitHub) =====
-https://github.com/rgthree/rgthree-comfy.git|node|rgthree-comfy
-https://github.com/ssitu/ComfyUI_UltimateSDUpscale.git|node|ComfyUI_UltimateSDUpscale
-https://github.com/giriss/comfy-image-saver.git|node|comfy-image-saver
-https://github.com/WASasquatch/was-node-suite-comfyui.git|node|was-node-suite-comfyui
-https://github.com/kijai/ComfyUI-KJNodes.git|node|ComfyUI-KJNodes
-
+# === UPSCALE MODELS ===
+4x-UltraSharp.safetensors|https://huggingface.co/Kim2091/UltraSharp/resolve/main/4x-UltraSharp.safetensors|upscale
