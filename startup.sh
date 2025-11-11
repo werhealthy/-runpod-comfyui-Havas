@@ -223,15 +223,25 @@ python main.py \
 sleep 5
 
     
-# === INSTALLA JUPYTER LAB ===
+# === INSTALLA JUPYTER LAB (SENZA BUILD) ===
 echo ""
-echo "📓 Installazione Jupyter Lab completo..."
-pip install -q --upgrade jupyterlab jupyter-server jupyterlab-server jupyter-server-terminals
+echo "📓 Installazione Jupyter Lab..."
+pip install -q --upgrade pip
+pip install -q jupyterlab jupyter-server jupyter-server-terminals jupyterlab-server
 
-# Clean e rebuild completo
-echo "🔧 Build estensioni Jupyter..."
-jupyter lab clean --all
-jupyter lab build --minimize=False
+echo "🚀 Avvio Jupyter Lab su porta 8888..."
+jupyter lab \
+    --ip=0.0.0.0 \
+    --port=8888 \
+    --no-browser \
+    --allow-root \
+    --notebook-dir=/tmp/comfyui \
+    --NotebookApp.token='' \
+    --NotebookApp.password='' \
+    --ServerApp.terminado_settings='{"shell_command": ["/bin/bash"]}' \
+    > /tmp/jupyter.log 2>&1 &
+
+echo "✅ Jupyter Lab disponibile su porta 8888"
 
 # === CREA ALIAS PER DOWNLOAD ON-DEMAND ===
 echo "🔧 Configurazione comandi rapidi..."
