@@ -257,6 +257,39 @@ STARTSCRIPT
 chmod +x /tmp/comfyui/start_comfyui.sh
 
 echo "✅ Auto-sync workflows configurato"
+# === Sincronizza workflows e modelli automaticamente ===
+echo "🔧 Sincronizzo i workflow e i modelli con GitHub..."
+
+# Sincronizza workflows
+WORKFLOWS_DIR="/tmp/comfyui/user/default/workflows"
+WORKFLOWS_BASE_URL="https://api.github.com/repos/werhealthy/-runpod-comfyui-Havas/contents/workflows"
+
+workflow_files=$(curl -s "$WORKFLOWS_BASE_URL" | jq -r '.[] | select(.name | endswith(".json")) | .name')
+if [ -z "$workflow_files" ]; then
+    echo "⚠️ Nessun workflow da sincronizzare"
+else
+    echo "$workflow_files" | while read workflow_name; do
+        workflow_url="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/workflows/$workflow_name"
+        workflow_path="$WORKFLOWS_DIR/$workflow_name"
+        wget -q "$workflow_url" -O "$workflow_path" && echo "✅ $workflow_name sincronizzato"
+    done
+fi
+
+# Sincronizza modelli
+MODELS_LIST_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/modelli.txt"
+MODELS_DIR="/tmp/comfyui/models"
+CHECKPOINT_DIR="$MODELS_DIR/checkpoints"
+LORA_DIR="$MODELS_DIR/loras"
+VAE_DIR="$MODELS_DIR/vae"
+
+while IFS='|' read -r filename url tipo; do
+    [[ "$filename" =~ ^[[:space:]]*# ]] && continue
+    [[ -z "$filename" ]] && continue
+    dest_dir=$(get_model_dir "$tipo")
+    mkdir -p "$dest_dir"
+    dest_path="$dest_dir/$filename"
+    wget -q "$url" -O "$dest_path"
+done < <(curl -s "$MODELS_LIST_URL")
 
 # Avvia ComfyUI con wrapper auto-sync
 cd "$COMFY_DIR"
