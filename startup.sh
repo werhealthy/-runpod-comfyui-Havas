@@ -240,6 +240,19 @@ echo "🔍 Verifica moduli..."
 python3 -c "import terminado; print('✅ terminado:', terminado.__version__)" || echo "⚠️  terminado non trovato"
 python3 -c "import jupyter_server_terminals; print('✅ jupyter-server-terminals OK')" || echo "⚠️  jupyter-server-terminals non trovato"
 
+# Crea config per bypassare XSRF/CORS (necessario per proxy Runpod)
+echo "⚙️  Configurazione Jupyter per proxy..."
+mkdir -p /root/.jupyter
+cat > /root/.jupyter/jupyter_server_config.py << 'PYEOF'
+c.ServerApp.allow_origin = '*'
+c.ServerApp.disable_check_xsrf = True
+c.ServerApp.token = ''
+c.ServerApp.password = ''
+c.IdentityProvider.token = ''
+c.ServerApp.allow_remote_access = True
+c.ServerApp.allow_credentials = True
+PYEOF
+
 echo "🚀 Avvio Jupyter Lab su porta 8888..."
 jupyter lab \
     --ip=0.0.0.0 \
@@ -247,12 +260,10 @@ jupyter lab \
     --no-browser \
     --allow-root \
     --notebook-dir=/tmp/comfyui \
-    --NotebookApp.token='' \
-    --NotebookApp.password='' \
     > /tmp/jupyter.log 2>&1 &
 
 # Attendi avvio
-sleep 3
+sleep 5
 
 # Verifica che sia partito
 if ps aux | grep -q "[j]upyter lab"; then
@@ -261,6 +272,7 @@ else
     echo "❌ Errore avvio Jupyter, controlla /tmp/jupyter.log"
     tail -20 /tmp/jupyter.log
 fi
+
 
 # === CREA ALIAS PER DOWNLOAD ON-DEMAND ===
 echo "🔧 Configurazione comandi rapidi..."
