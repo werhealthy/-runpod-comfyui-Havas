@@ -282,4 +282,141 @@ nohup jupyter lab \
     --NotebookApp.password='' \
     > /tmp/jupyter.log 2>&1 &
 
-echo "✅ Jupyter Lab disponibile su porta 8889"
+echo "✅ Jupyter Lab disponibile su porta 8888"
+
+# === CREA ALIAS PER DOWNLOAD ON-DEMAND ===
+echo "🔧 Configurazione comandi rapidi..."
+
+# Crea script di download nel pod
+cat > /usr/local/bin/download-lora <<'SCRIPT'
+#!/bin/bash
+LORA_DIR="/tmp/comfyui/models/loras"
+CONFIG_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/modelli_opzionali.txt"
+
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+clear
+echo -e "${BLUE}╔══════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║   📦 DOWNLOAD LORA ON-DEMAND            ║${NC}"
+echo -e "${BLUE}╚══════════════════════════════════════════╝${NC}"
+
+wget -q "$CONFIG_URL" -O /tmp/modelli_opzionali.txt || {
+    echo -e "${RED}❌ Errore download config${NC}"
+    exit 1
+}
+
+declare -A MODELS_NAME
+declare -A MODELS_URL
+declare -A MODELS_DESC
+index=1
+
+while IFS='|' read -r name url desc; do
+    [[ "$name" =~ ^[[:space:]]*# ]] && continue
+    [[ -z "$name" ]] && continue
+    MODELS_NAME[$index]="$name"
+    MODELS_URL[$index]="$url"
+    MODELS_DESC[$index]="$desc"
+    ((index++))
+done < /tmp/modelli_opzionali.txt
+
+total_models=$((index - 1))
+
+if [ $total_models -eq 0 ]; then
+    echo -e "${YELLOW}⚠️  Nessun modello trovato${NC}"
+    exit 1
+fi
+
+echo -e "\n${GREEN}LoRA disponibili:${NC}\n"
+
+for i in $(seq 1 $total_models); do
+    name="${MODELS_NAME[$i]}"
+    desc="${MODELS_DESC[$i]}"
+    
+    if [ -f "$LORA_DIR/$name.safetensors" ]; then
+        status="${GREEN}[SCARICATO]${NC}"
+    else
+        status="${YELLOW}[DA SCARICARE]${NC}"
+    fi
+    
+    printf "%2d) %-30s %s\n   %s\n\n" "$i" "$name" "$status" "$desc"
+done
+
+echo -e "${BLUE}───────────────────────────────────────────${NC}"
+echo "  3          → Scarica solo modello 3"
+echo "  1,3,5      → Scarica modelli 1, 3 e 5"
+echo "  1-4        → Scarica da 1 a 4"
+echo "  A          → Scarica TUTTI"
+echo "  L          → Lista già scaricati"
+echo "  Q          → Esci"
+echo -e "${BLUE}───────────────────────────────────────────${NC}\n"
+
+read -p "Seleziona: " choice
+
+download_model() {
+    local idx=$1
+    local name="${MODELS_NAME[$idx]}"
+    local url="${MODELS_URL[$idx]}"
+    local dest="$LORA_DIR/$name.safetensors"
+    
+    if [ -f "$dest" ]; then
+        echo -e "  ${GREEN}✓ Già presente: $name${NC}"
+        return 0
+    fi
+    
+    echo "  📥 Scarico: $name..."
+    wget -c -q --show-progress "$url" -O "$dest" && \
+        echo -e "  ${GREEN}✅ Completato: $name${NC}" || \
+        echo -e "  ${RED}❌ Fallito: $name${NC}"
+}
+
+case "$choice" in
+    [Qq]) echo "👋 Uscita..."; exit 0 ;;
+    [Ll])
+        echo -e "\n${GREEN}📦 LoRA già scaricati:${NC}\n"
+        ls -1 "$LORA_DIR"/*.safetensors 2>/dev/null | xargs -n1 basename || echo "  Nessuno"
+        exit 0
+        ;;
+    [Aa])
+        echo -e "\n${BLUE}📥 Download TUTTI...${NC}\n"
+        for i in $(seq 1 $total_models); do
+            download_model "$i"
+        done
+        ;;
+    *-*)
+        start=$(echo "$choice" | cut -d'-' -f1)
+        end=$(echo "$choice" | cut -d'-' -f2)
+        if [ "$start" -ge 1 ] && [ "$end" -le "$total_models" ] && [ "$start" -le "$end" ]; then
+            echo -e "\n${BLUE}📥 Download $start-$end...${NC}\n"
+            for i in $(seq "$start" "$end"); do
+                download_model "$i"
+            done
+        fi
+        ;;
+    *,*)
+        echo -e "\n${BLUE}📥 Download selezionati...${NC}\n"
+        IFS=',' read -ra MODELS <<< "$choice"
+        for i in "${MODELS[@]}"; do
+            i=$(echo "$i" | xargs)
+            [ "$i" -ge 1 ] && [ "$i" -le "$total_models" ] && download_model "$i"
+        done
+        ;;
+    [0-9]*)
+        [ "$choice" -ge 1 ] && [ "$choice" -le "$total_models" ] && {
+            echo -e "\n${BLUE}📥 Download modello $choice...${NC}\n"
+            download_model "$choice"
+        }
+        ;;
+esac
+
+echo -e "\n${GREEN}✨ Done! Refresh ComfyUI per vedere i nuovi LoRA.${NC}"
+SCRIPT
+
+chmod +x /usr/local/bin/download-lora
+
+echo "✅ Comando 'download-lora' installato!"
+echo "   Usa: download-lora (da qualsiasi terminale)"
+
