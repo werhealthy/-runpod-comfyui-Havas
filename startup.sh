@@ -223,11 +223,22 @@ python main.py \
 sleep 5
 
     
-# === INSTALLA JUPYTER LAB (SENZA BUILD) ===
+# === INSTALLA JUPYTER LAB CON TERMINALS ===
 echo ""
-echo "📓 Installazione Jupyter Lab..."
-pip install -q --upgrade pip
-pip install -q jupyterlab jupyter-server jupyter-server-terminals jupyterlab-server
+echo "📓 Installazione Jupyter Lab con supporto terminals..."
+
+# Disinstalla eventuali versioni problematiche
+pip uninstall -y jupyter-server-terminals terminado 2>/dev/null || true
+
+# Installa versioni specifiche testate
+pip install -q --no-cache-dir terminado==0.18.0
+pip install -q --no-cache-dir jupyter-server-terminals==0.5.0
+pip install -q --no-cache-dir jupyterlab jupyter-server jupyterlab-server
+
+# Verifica installazione
+echo "🔍 Verifica moduli..."
+python3 -c "import terminado; print('✅ terminado:', terminado.__version__)" || echo "⚠️  terminado non trovato"
+python3 -c "import jupyter_server_terminals; print('✅ jupyter-server-terminals OK')" || echo "⚠️  jupyter-server-terminals non trovato"
 
 echo "🚀 Avvio Jupyter Lab su porta 8888..."
 jupyter lab \
@@ -238,10 +249,18 @@ jupyter lab \
     --notebook-dir=/tmp/comfyui \
     --NotebookApp.token='' \
     --NotebookApp.password='' \
-    --ServerApp.terminado_settings='{"shell_command": ["/bin/bash"]}' \
     > /tmp/jupyter.log 2>&1 &
 
-echo "✅ Jupyter Lab disponibile su porta 8888"
+# Attendi avvio
+sleep 3
+
+# Verifica che sia partito
+if ps aux | grep -q "[j]upyter lab"; then
+    echo "✅ Jupyter Lab avviato correttamente su porta 8888"
+else
+    echo "❌ Errore avvio Jupyter, controlla /tmp/jupyter.log"
+    tail -20 /tmp/jupyter.log
+fi
 
 # === CREA ALIAS PER DOWNLOAD ON-DEMAND ===
 echo "🔧 Configurazione comandi rapidi..."
