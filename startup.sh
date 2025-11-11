@@ -291,6 +291,42 @@ while IFS='|' read -r filename url tipo; do
     wget -q "$url" -O "$dest_path"
 done < <(curl -s "$MODELS_LIST_URL")
 
+# Sincronizza custom nodes
+CUSTOM_NODES_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/custom_nodes.txt"
+NODES_DIR="/tmp/comfyui/custom_nodes"
+mkdir -p "$NODES_DIR"
+
+echo "[$(date '+%H:%M:%S')] 🔌 Sincronizzo custom nodes..."
+
+wget -q "$CUSTOM_NODES_URL" -O /tmp/custom_nodes.txt || {
+    echo "[$(date '+%H:%M:%S')] ⚠️ File custom_nodes.txt non trovato" >&2
+    exit 1
+}
+
+while IFS='|' read -r name repo; do
+    [[ "$name" =~ ^[[:space:]]*# ]] && continue
+    [[ -z "$name" ]] && continue
+
+    node_path="$NODES_DIR/$name"
+
+    if [ ! -d "$node_path/.git" ]; then
+        echo "[$(date '+%H:%M:%S')] 📥 Clono custom node: $name"
+        git clone --depth=1 "$repo" "$node_path" || {
+            echo "[$(date '+%H:%M:%S')] ⚠️ Clone fallito: $name"
+            continue
+        }
+        if [ -f "$node_path/requirements.txt" ]; then
+            pip install -q --no-cache-dir -r "$node_path/requirements.txt" 2>/dev/null || echo "[$(date '+%H:%M:%S')] ⚠️ Install dipendenze fallito $name"
+        fi
+        if [ -f "$node_path/install.py" ]; then
+            (cd "$node_path" && python install.py 2>/dev/null) || echo "[$(date '+%H:%M:%S')] ⚠️ Install.py fallito $name"
+        fi
+    else
+        echo "[$(date '+%H:%M:%S')] ✓ Custom node già presente: $name"
+    fi
+done < /tmp/custom_nodes.txt
+echo "[$(date '+%H:%M:%S')] ✅ Sincronizzazione custom nodes completata"
+
 # Avvia ComfyUI con wrapper auto-sync
 cd "$COMFY_DIR"
 echo "🌐 ComfyUI in avvio su porta 8188..."
