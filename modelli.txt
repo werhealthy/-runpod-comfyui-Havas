@@ -19,7 +19,7 @@ WanVideo_comfy.safetensors|https://huggingface.co/Kijai/WanVideo_comfy/resolve/m
 Qwen-Image-Lightning.safetensors|https://huggingface.co/lightx2v/Qwen-Image-Lightning/resolve/main/Qwen-Image-Lightning-4steps-V1.0-bf16.safetensors|lora
 Qwen-Image-Edit-InSubject.safetensors|https://huggingface.co/peteromallet/Qwen-Image-Edit-InSubject/resolve/main/InSubject-0.5.safetensors?download=true|lora
 Qwen-Image-Boreal.safetensors|https://civitai.com/api/download/models/2181880?type=Model&format=SafeTensor|lora
-Studio_Realism.safetensors|https://s3.filebin.net/filebin/6cd6291d5689fe090f04634f79285ad7e1235f96e75ecefc2c7183f8f2b4b70c/da87aedc9e10774df603f817dd34e516288217d3b6db9212087d97d017fd765e?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=7pMj6hGeoKewqmMQILjm%2F20251111%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251111T182709Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host&response-cache-control=max-age%3D60&response-content-disposition=inline%3B%20filename%3D%22qwen-studio-realism.safetensors%22&response-content-type=application%2Foctet-stream&X-Amz-Signature=620eec5e901c4135469fa8fb18bb3c66b5f8a46a4d64762cf559b73fc8174d54|lora
+Studio_Realism.safetensors|https://huggingface.co/wwwerhealthy/HavasMODELS/resolve/main/qwen-studio-realism.safetensors?download=true|lora
 next-scene-qwen-image-lora-2509.safetensors|https://huggingface.co/lovis93/next-scene-qwen-image-lora-2509/resolve/main/next-scene_lora-v2-3000.safetensors?download=true|lora
 
 # === CLIP ===
