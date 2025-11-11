@@ -536,3 +536,12 @@ echo "   Comando: download-lora"
 
 # Mantieni container attivo
 wait
+
+# Altri comandi di configurazione...
+
+# Aggiungo alias restartcomfy per il riavvio user-friendly
+echo "alias restartcomfy='/usr/local/bin/restart-comfyui.sh'" >> /root/.bashrc
+source /root/.bashrc
+
+# Eventuali altri comandi finali
+
