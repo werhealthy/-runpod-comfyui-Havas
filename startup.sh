@@ -223,23 +223,15 @@ python main.py \
 sleep 5
 
     
-# === INSTALLA JUPYTER NOTEBOOK ===
+# === INSTALLA JUPYTER LAB ===
 echo ""
-echo "📓 Installazione Jupyter Notebook..."
-pip install -q notebook
+echo "📓 Installazione Jupyter Lab completo..."
+pip install -q --upgrade jupyterlab jupyter-server jupyterlab-server jupyter-server-terminals
 
-echo "🚀 Avvio Jupyter Notebook su porta 8888..."
-jupyter notebook \
-    --ip=0.0.0.0 \
-    --port=8888 \
-    --no-browser \
-    --allow-root \
-    --notebook-dir=/tmp/comfyui \
-    --NotebookApp.token='' \
-    --NotebookApp.password='' \
-    > /tmp/jupyter.log 2>&1 &
-
-echo "✅ Jupyter Notebook disponibile su porta 8888"
+# Clean e rebuild completo
+echo "🔧 Build estensioni Jupyter..."
+jupyter lab clean --all
+jupyter lab build --minimize=False
 
 # === CREA ALIAS PER DOWNLOAD ON-DEMAND ===
 echo "🔧 Configurazione comandi rapidi..."
