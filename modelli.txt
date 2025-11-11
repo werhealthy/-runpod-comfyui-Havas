@@ -12,7 +12,7 @@ wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors|https://huggingface.co/Comfy-Org
 lenovo_ultrareal.safetensors|https://civitai.com/api/download/models/2299345?type=Model&format=SafeTensor|lora
 Instareal_high.safetensors|https://huggingface.co/Patarapoom/model/resolve/main/Instareal_high.safetensors|lora
 Instareal_low.safetensors|https://huggingface.co/Patarapoom/model/resolve/main/Instareal_low.safetensors|lora
-Stock Photography [Wan 2.2]https://prompthero.com/ai-models/stock-photography-wan-2-2-download/low-noise-v1-0/file/9232dbed-809a-443f-aaea-9fab3a614715/download|lora
+Stock Photography [Wan 2.2]|https://prompthero.com/ai-models/stock-photography-wan-2-2-download/low-noise-v1-0/file/9232dbed-809a-443f-aaea-9fab3a614715/download|lora
 Wan2.2-Lightning_high_noise_model.safetensors|https://huggingface.co/lightx2v/Wan2.2-Lightning/resolve/main/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors?download=true|lora
 Wan2.2-Lightning_low_noise_model.safetensors|https://huggingface.co/lightx2v/Wan2.2-Lightning/resolve/main/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors?download=true|lora
 WanVideo_comfy|https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_T2V_14B_lightx2v_cfg_step_distill_lora_rank32.safetensors?download=true|lora
