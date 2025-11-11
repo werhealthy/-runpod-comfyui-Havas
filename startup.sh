@@ -223,17 +223,13 @@ python main.py \
 sleep 5
 
     
-# === INSTALLA JUPYTER ===
+# === INSTALLA JUPYTER NOTEBOOK ===
 echo ""
-echo "📓 Installazione Jupyter Lab..."
-pip install -q jupyterlab jupyter-server jupyterlab-server
+echo "📓 Installazione Jupyter Notebook..."
+pip install -q notebook
 
-# Rebuild estensioni (corregge launcher error)
-echo "🔧 Build estensioni Jupyter..."
-jupyter lab build --dev-build=False --minimize=True 2>/dev/null || true
-
-echo "🚀 Avvio Jupyter Lab su porta 8888..."
-jupyter lab \
+echo "🚀 Avvio Jupyter Notebook su porta 8888..."
+jupyter notebook \
     --ip=0.0.0.0 \
     --port=8888 \
     --no-browser \
@@ -242,6 +238,8 @@ jupyter lab \
     --NotebookApp.token='' \
     --NotebookApp.password='' \
     > /tmp/jupyter.log 2>&1 &
+
+echo "✅ Jupyter Notebook disponibile su porta 8888"
 
 # === CREA ALIAS PER DOWNLOAD ON-DEMAND ===
 echo "🔧 Configurazione comandi rapidi..."
