@@ -207,12 +207,62 @@ runpod:
     upscale_models: upscale_models
     controlnet: controlnet
 EOF
+# === CREA HOOK PRE-RESTART PER AUTO-SYNC WORKFLOWS ===
+echo "🔧 Configurazione auto-sync workflows al restart..."
+
+# Crea script di sync
+cat > /tmp/comfyui/sync_workflows.sh <<'SYNCSCRIPT'
+#!/bin/bash
+WORKFLOWS_DIR="/tmp/comfyui/user/default/workflows"
+WORKFLOWS_BASE_URL="https://api.github.com/repos/werhealthy/-runpod-comfyui-Havas/contents/workflows"
+
+echo "[$(date '+%H:%M:%S')] 🔄 Auto-sync workflows da GitHub..."
+
+workflow_files=$(curl -s "$WORKFLOWS_BASE_URL" | jq -r '.[] | select(.name | endswith(".json")) | .name')
+
+if [ -z "$workflow_files" ]; then
+    echo "[$(date '+%H:%M:%S')] ℹ️  Nessun workflow trovato"
+    exit 0
+fi
+
+echo "$workflow_files" | while read workflow_name; do
+    workflow_url="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/workflows/$workflow_name"
+    workflow_path="$WORKFLOWS_DIR/$workflow_name"
+    
+    if wget -q "$workflow_url" -O "$workflow_path"; then
+        echo "[$(date '+%H:%M:%S')] ✅ Sincronizzato: $workflow_name"
+    fi
+done
+
+echo "[$(date '+%H:%M:%S')] ✅ Sync workflows completato"
+SYNCSCRIPT
+
+chmod +x /tmp/comfyui/sync_workflows.sh
+
+# Crea wrapper per python main.py che esegue sync prima di partire
+cat > /tmp/comfyui/start_comfyui.sh <<'STARTSCRIPT'
+#!/bin/bash
+# Questo script wrappa main.py e sincronizza workflows prima dell'avvio
+
+# Sync workflows se disponibile
+if [ -f /tmp/comfyui/sync_workflows.sh ]; then
+    bash /tmp/comfyui/sync_workflows.sh
+fi
 
 # Avvia ComfyUI
+cd /tmp/comfyui
+exec python main.py "$@"
+STARTSCRIPT
+
+chmod +x /tmp/comfyui/start_comfyui.sh
+
+echo "✅ Auto-sync workflows configurato"
+
+# Avvia ComfyUI con wrapper auto-sync
 cd "$COMFY_DIR"
 echo "🌐 ComfyUI in avvio su porta 8188..."
-# Avvia in background con &
-python main.py \
+# Usa wrapper che sincronizza workflows prima di partire
+/tmp/comfyui/start_comfyui.sh \
     --listen 0.0.0.0 \
     --port 8188 \
     --enable-cors-header \
