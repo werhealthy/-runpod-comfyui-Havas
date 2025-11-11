@@ -12,9 +12,9 @@ wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors|https://huggingface.co/Comfy-Org
 lenovo_ultrareal.safetensors|https://civitai.com/api/download/models/2299345?type=Model&format=SafeTensor|lora
 Instareal_high.safetensors|https://huggingface.co/Patarapoom/model/resolve/main/Instareal_high.safetensors|lora
 Instareal_low.safetensors|https://huggingface.co/Patarapoom/model/resolve/main/Instareal_low.safetensors|lora
-Candid Photography [Wan 2.2]|https://civitai.com/api/download/models/2179870?type=Model&format=SafeTensor
-high_noise_model.safetensors|https://huggingface.co/lightx2v/Wan2.2-Lightning/resolve/main/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors?download=true
-low_noise_model.safetensors|https://huggingface.co/lightx2v/Wan2.2-Lightning/resolve/main/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors?download=true
+Candid Photography [Wan 2.2]|https://civitai.com/api/download/models/2179870?type=Model&format=SafeTensor|lora
+high_noise_model.safetensors|https://huggingface.co/lightx2v/Wan2.2-Lightning/resolve/main/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors?download=true|lora
+low_noise_model.safetensors|https://huggingface.co/lightx2v/Wan2.2-Lightning/resolve/main/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors?download=true|lora
 
 # === VAE ===
 wan_2.1_vae.safetensors|https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors|vae
