@@ -39,6 +39,20 @@ WORKFLOWS_DIR="/tmp/comfyui/user/default/workflows"
 mkdir -p "$CHECKPOINT_DIR" "$LORA_DIR" "$VAE_DIR" "$CONTROLNET_DIR" "$WORKFLOWS_DIR"
 MODELS_LIST_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/modelli.txt"
 
+# === MAPPA TIPO → CARTELLA ===
+get_model_dir() {
+    local tipo=$1
+    case "$tipo" in
+        checkpoint) echo "$MODELS_DIR/checkpoints" ;;
+        lora) echo "$LORA_DIR" ;;
+        vae) echo "$VAE_DIR" ;;
+        text_encoder) echo "$MODELS_DIR/clip" ;;
+        upscale) echo "$MODELS_DIR/upscale_models" ;;
+        controlnet) echo "$CONTROLNET_DIR" ;;
+        *) echo "$MODELS_DIR" ;;
+    esac
+}
+
 # Funzione per download con retry
 download_model() {
     local url=$1
@@ -70,42 +84,23 @@ wget -q "$MODELS_LIST_URL" -O /tmp/modelli.txt || {
 }
 
 echo "📦 Download modelli da lista..."
-while IFS='|' read -r url category filename; do
-    # Salta commenti (righe che iniziano con #)
-    [[ "$url" =~ ^[[:space:]]*# ]] && continue
-    # Salta righe vuote
-    [[ -z "$url" ]] && continue
+while IFS='|' read -r filename url tipo; do
+    # Salta commenti e vuoti
+    [[ "$filename" =~ ^[[:space:]]*# ]] && continue
+    [[ -z "$filename" ]] && continue
     
-    # Determina directory destinazione
-    case "$category" in
-        "diffusion_models/wan")
-            dest_dir="$MODELS_DIR/checkpoints"  # Root checkpoints, non wan/
-            mkdir -p "$dest_dir"
-            # Rimuovi sottocartella dal filename se presente
-            filename=$(basename "$filename")
-            ;;
-        "loras")
-            dest_dir="$LORA_DIR"
-            ;;
-        "vae")
-            dest_dir="$VAE_DIR"
-            ;;
-        "text_encoders")
-            dest_dir="$MODELS_DIR/clip"
-            mkdir -p "$dest_dir"
-            ;;
-        "upscale_models")
-            dest_dir="$MODELS_DIR/upscale_models"
-            mkdir -p "$dest_dir"
-            ;;
-        *)
-            dest_dir="$MODELS_DIR/$category"
-            mkdir -p "$dest_dir"
-            ;;
-    esac
+    # Usa funzione per ottenere cartella
+    dest_dir=$(get_model_dir "$tipo")
+    mkdir -p "$dest_dir"
+    dest_file="$dest_dir/$filename"
     
-    download_model "$url" "$dest_dir/$filename"
-    
+    # Skip se esiste
+    if [ -f "$dest_file" ]; then
+        echo "  ✓ $(basename "$filename")"
+    else
+        echo "  📥 $(basename "$filename")..."
+        download_model "$url" "$dest_file"
+    fi
 done < /tmp/modelli.txt
 
 # === FINE DOWNLOAD MODELLI ===
@@ -115,45 +110,35 @@ echo "🔌 Installazione Custom Nodes..."
 NODES_DIR="$COMFY_DIR/custom_nodes"
 mkdir -p "$NODES_DIR"
 
-# Array repository custom nodes con link corretti
-declare -A REPOS=(
-  ["rgthree-comfy"]="https://github.com/rgthree/rgthree-comfy.git"
-  ["ComfyUI_UltimateSDUpscale"]="https://github.com/ssitu/ComfyUI_UltimateSDUpscale.git"
-  ["ComfyUI-Inspire-Pack"]="https://github.com/ltdrdata/ComfyUI-Inspire-Pack.git"
-  ["comfy-image-saver"]="https://github.com/giriss/comfy-image-saver.git"
-  ["was-node-suite-comfyui"]="https://github.com/WASasquatch/was-node-suite-comfyui.git"
-  ["RES4LYF"]="https://github.com/ClownsharkBatwing/RES4LYF.git"
-)
-for name in "${!REPOS[@]}"; do
-  repo="${REPOS[$name]}"
-  node_path="$NODES_DIR/$name"
-  
-  if [ ! -d "$node_path/.git" ]; then
-    echo "  📥 Clone: $name"
-    git clone --depth=1 "$repo" "$node_path" || {
-      echo "  ⚠️  Clone fallito: $name"
-      continue
-    }
-  else
-    echo "  ✓ Già presente: $name"
-  fi
-  
-  # Installa requirements.txt
-  if [ -f "$node_path/requirements.txt" ]; then
-    echo "    📦 Installo dipendenze per $name..."
-    pip install -q --no-cache-dir -r "$node_path/requirements.txt" 2>/dev/null || {
-      echo "    ⚠️  Alcune dipendenze fallite per $name"
-    }
-  fi
-  
-  # Esegui install.py se presente
-  if [ -f "$node_path/install.py" ]; then
-    echo "    🔧 Eseguo install.py per $name..."
-    (cd "$node_path" && python install.py 2>/dev/null) || {
-      echo "    ⚠️  install.py fallito per $name"
-    }
-  fi
-done
+# === CUSTOM NODES DA FILE ===
+CUSTOM_NODES_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/custom_nodes.txt"
+
+echo "📥 Scarico lista custom nodes..."
+wget -q "$CUSTOM_NODES_URL" -O /tmp/custom_nodes.txt || echo "⚠️  File custom_nodes.txt non trovato, salto"
+
+if [ -f /tmp/custom_nodes.txt ]; then
+    while IFS='|' read -r name repo; do
+        [[ "$name" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "$name" ]] && continue
+        
+        node_path="$NODES_DIR/$name"
+        
+        if [ -d "$node_path/.git" ]; then
+            echo "  ✓ $name"
+        else
+            echo "  📥 Clone: $name"
+            git clone --depth=1 "$repo" "$node_path" || continue
+            
+            # Installa dipendenze
+            [ -f "$node_path/requirements.txt" ] && \
+                pip install -q --no-cache-dir -r "$node_path/requirements.txt" 2>/dev/null
+            
+            [ -f "$node_path/install.py" ] && \
+                (cd "$node_path" && python install.py 2>/dev/null) || true
+        fi
+    done < /tmp/custom_nodes.txt
+fi
+
 
 echo "✓ Custom nodes installati"
 
@@ -207,42 +192,6 @@ fi
 workflow_count=$(ls -1 "$WORKFLOWS_DIR"/*.json 2>/dev/null | wc -l)
 echo "✓ Workflow caricati: $workflow_count"
 
-# === LORA PERSONALIZZATI ===
-echo ""
-echo "📦 Caricamento LoRA personalizzati da GitHub..."
-
-# URL base della cartella loras
-LORAS_BASE_URL="https://api.github.com/repos/werhealthy/-runpod-comfyui-Havas/contents/loras"
-LORAS_DIR="$MODELS_DIR/loras"
-
-# Installa jq se non presente
-command -v jq &> /dev/null || apt-get install -y -qq jq
-
-# Scarica lista file
-lora_files=$(curl -s "$LORAS_BASE_URL" | jq -r '.[] | select(.name | endswith(".safetensors")) | .name')
-
-if [ -z "$lora_files" ]; then
-    echo "  ℹ️  Nessun LoRA personalizzato trovato"
-else
-    echo "  ✅ Trovati $(echo "$lora_files" | wc -l) LoRA personalizzati"
-    echo "$lora_files" | while read lora_name; do
-        lora_url="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/loras/$lora_name"
-        lora_path="$LORAS_DIR/$lora_name"
-        
-        if [ -f "$lora_path" ]; then
-            echo "  ✓ Già presente: $lora_name"
-        else
-            echo "  📥 Scarico LoRA: $lora_name"
-            wget -q "$lora_url" -O "$lora_path" && \
-                echo "  ✅ Salvato: $lora_name" || \
-                echo "  ⚠️  Fallito: $lora_name"
-        fi
-    done
-fi
-
-lora_count=$(ls -1 "$LORAS_DIR"/*.safetensors 2>/dev/null | wc -l)
-echo "✓ LoRA disponibili: $lora_count"
-
 echo "✅ Tutti i modelli scaricati"
 # Crea extra_model_paths.yaml
 echo "⚙️  Configurazione percorsi modelli..."
@@ -260,12 +209,17 @@ EOF
 # Avvia ComfyUI
 cd "$COMFY_DIR"
 echo "🌐 ComfyUI in avvio su porta 8188..."
+# Avvia in background con &
 python main.py \
     --listen 0.0.0.0 \
     --port 8188 \
     --enable-cors-header \
     --force-fp16 \
-    --preview-method auto
+    --preview-method auto &
+
+# Aspetta che ComfyUI si avvii
+sleep 5
+
     
 # === INSTALLA JUPYTER ===
 echo ""
@@ -278,9 +232,11 @@ nohup jupyter lab \
     --port=8888 \
     --no-browser \
     --allow-root \
+    --notebook-dir=/tmp/comfyui \
     --NotebookApp.token='' \
     --NotebookApp.password='' \
     > /tmp/jupyter.log 2>&1 &
+
 
 echo "✅ Jupyter Lab disponibile su porta 8888"
 
@@ -420,3 +376,10 @@ chmod +x /usr/local/bin/download-lora
 echo "✅ Comando 'download-lora' installato!"
 echo "   Usa: download-lora (da qualsiasi terminale)"
 
+echo "✅ Setup completato!"
+echo "   ComfyUI: http://0.0.0.0:8188"
+echo "   Jupyter: http://0.0.0.0:8888"
+echo "   Comando: download-lora"
+
+# Mantieni container attivo
+wait
