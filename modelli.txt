@@ -33,7 +33,7 @@ Qwen-Image-Edit-2509-Q5_0.gguf|https://huggingface.co/QuantStack/Qwen-Image-Edit
 wan_2.1_vae.safetensors|https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors|vae
 Qwen-Image_ComfyUI.safetensors|https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/vae/qwen_image_vae.safetensors?download=true|vae
 # === TEXT ENCODERS ===
-umt5_xxl_fp8_e4m3fn_scaled.safetensors|https://huggingface.co/ComfyOrg/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors|text_encoder
+umt5_xxl_fp8_e4m3fn_scaled.safetensors|https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/blob/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors#:~:text=Copy-,download,-link|text_encoder
 
 # === UPSCALE MODELS ===
 4x-UltraSharp.safetensors|https://huggingface.co/Kim2091/UltraSharp/resolve/main/4x-UltraSharp.safetensors|upscale
