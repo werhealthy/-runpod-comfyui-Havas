@@ -83,7 +83,7 @@ download_model() {
     echo "❌ Download fallito dopo $max_retries tentativi: $url"
     return 1
 }
-
+: <<'SKIP_MODELS_DOWNLOAD'
 # === SCARICA MODELLI DA FILE ===
 
 echo "📋 Scarico lista modelli da GitHub..."
@@ -113,11 +113,13 @@ while IFS='|' read -r filename url tipo; do
 done < /tmp/modelli.txt
 
 # === FINE DOWNLOAD MODELLI ===
+SKIP_MODELS_DOWNLOAD
 # === CUSTOM NODES ===
 echo ""
 echo "🔌 Installazione Custom Nodes..."
 NODES_DIR="$COMFY_DIR/custom_nodes"
 mkdir -p "$NODES_DIR"
+: <<'SKIP_CUSTOM_NODES'
 
 # === CUSTOM NODES DA FILE ===
 CUSTOM_NODES_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/custom_nodes.txt"
@@ -150,7 +152,7 @@ fi
 
 
 echo "✓ Custom nodes installati"
-
+SKIP_CUSTOM_NODES
 # === WORKFLOWS ===
 echo ""
 echo "📋 Caricamento Workflows da GitHub..."
@@ -534,6 +536,80 @@ echo -e "\n${GREEN}✨ Done! Refresh ComfyUI per vedere i nuovi LoRA.${NC}"
 SCRIPT
 
 chmod +x /usr/local/bin/download-lora
+# === COMANDO DOWNLOAD MODELLI ===
+cat > /usr/local/bin/download-models <<'SCRIPT'
+#!/bin/bash
+MODELS_LIST_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/modelli.txt"
+MODELS_DIR="/tmp/comfyui/models"
+
+echo "📦 Download modelli da modelli.txt..."
+wget -q "$MODELS_LIST_URL" -O /tmp/modelli.txt
+
+get_model_dir() {
+    case "$1" in
+        checkpoint) echo "$MODELS_DIR/checkpoints" ;;
+        lora) echo "$MODELS_DIR/loras" ;;
+        vae) echo "$MODELS_DIR/vae" ;;
+        controlnet) echo "$MODELS_DIR/controlnet" ;;
+        *) echo "$MODELS_DIR" ;;
+    esac
+}
+
+while IFS='|' read -r filename url tipo; do
+    [[ "$filename" =~ ^[[:space:]]*# ]] && continue
+    [[ -z "$filename" ]] && continue
+    
+    dest_dir=$(get_model_dir "$tipo")
+    mkdir -p "$dest_dir"
+    dest_file="$dest_dir/$filename"
+    
+    if [ -f "$dest_file" ]; then
+        echo "✓ $filename"
+    else
+        echo "📥 Scarico $filename..."
+        wget -c -q --show-progress "$url" -O "$dest_file"
+        echo "✅ $filename completato"
+    fi
+done < /tmp/modelli.txt
+SCRIPT
+
+chmod +x /usr/local/bin/download-models
+echo "✅ Comando 'download-models' installato!"
+# === COMANDO INSTALL CUSTOM NODES ===
+cat > /usr/local/bin/install-nodes <<'SCRIPT'
+#!/bin/bash
+CUSTOM_NODES_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/custom_nodes.txt"
+NODES_DIR="/tmp/comfyui/custom_nodes"
+
+echo "🔌 Installazione custom nodes..."
+wget -q "$CUSTOM_NODES_URL" -O /tmp/custom_nodes.txt
+
+while IFS='|' read -r name repo; do
+    [[ "$name" =~ ^[[:space:]]*# ]] && continue
+    [[ -z "$name" ]] && continue
+    
+    node_path="$NODES_DIR/$name"
+    
+    if [ -d "$node_path/.git" ]; then
+        echo "✓ $name già presente"
+    else
+        echo "📥 Installo $name..."
+        git clone --depth=1 "$repo" "$node_path"
+        
+        [ -f "$node_path/requirements.txt" ] && \
+            pip install -q --no-cache-dir -r "$node_path/requirements.txt"
+        
+        [ -f "$node_path/install.py" ] && \
+            (cd "$node_path" && python install.py)
+        
+        echo "✅ $name installato"
+    fi
+done < /tmp/custom_nodes.txt
+SCRIPT
+
+chmod +x /usr/local/bin/install-nodes
+echo "✅ Comando 'install-nodes' installato!"
+
 
 echo "✅ Comando 'download-lora' installato!"
 echo "   Usa: download-lora (da qualsiasi terminale)"
