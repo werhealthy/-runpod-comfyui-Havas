@@ -137,8 +137,16 @@ if [ -f /tmp/custom_nodes.txt ]; then
         if [ -d "$node_path/.git" ]; then
             echo "  ✓ $name"
         else
-            echo "  📥 Clone: $name"
-            git clone --depth=1 "$repo" "$node_path" || continue
+            echo "[$(date '+%H:%M:%S')] 📥 Inizio clone: $name"
+            echo "   📍 Repository: $repo"
+            git clone --depth=1 --progress "$repo" "$node_path" 2>&1 | while IFS= read -r line; do
+                echo "   $line"
+            done || {
+                echo "[$(date '+%H:%M:%S')] ⚠️ Clone fallito: $name"
+                continue
+            }
+            echo "[$(date '+%H:%M:%S')] ✅ Completato: $name"
+
             
             # Installa dipendenze
             [ -f "$node_path/requirements.txt" ] && \
@@ -268,6 +276,7 @@ STARTSCRIPT
 chmod +x /tmp/comfyui/start_comfyui.sh
 
 echo "✅ Auto-sync workflows configurato"
+: <<'SKIP_AUTO_SYNC'
 # === Sincronizza workflows e modelli automaticamente ===
 echo "🔧 Sincronizzo i workflow e i modelli con GitHub..."
 
@@ -322,7 +331,10 @@ while IFS='|' read -r name repo; do
 
     if [ ! -d "$node_path/.git" ]; then
         echo "[$(date '+%H:%M:%S')] 📥 Clono custom node: $name"
-        git clone --depth=1 "$repo" "$node_path" || {
+        echo "   📍 Repo: $repo"
+        git clone --depth=1 --progress "$repo" "$node_path" 2>&1 | while IFS= read -r line; do
+            echo "   $line"
+        done || {
             echo "[$(date '+%H:%M:%S')] ⚠️ Clone fallito: $name"
             continue
         }
@@ -337,7 +349,7 @@ while IFS='|' read -r name repo; do
     fi
 done < /tmp/custom_nodes.txt
 echo "[$(date '+%H:%M:%S')] ✅ Sincronizzazione custom nodes completata"
-
+SKIP_AUTO_SYNC
 # Avvia ComfyUI con wrapper auto-sync
 cd "$COMFY_DIR"
 echo "🌐 ComfyUI in avvio su porta 8188..."
