@@ -692,30 +692,38 @@ WORKFLOWS_SCRIPT
 chmod +x /usr/local/bin/workflows
 echo "alias workflows='/usr/local/bin/workflows'" >> /root/.bashrc
 echo "✅ Workflow manager installed! Type 'workflows' to use it."
+
 #############################################
 ### AVVIO FRONTEND GRADIO PER LA DEMO AI ###
 #############################################
 
-# Directory del repository (dove si trova questo script)
-REPO_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# Ricava correttamente la directory dello script, OVUNQUE Runpod lo metta
+SCRIPT_PATH="$(realpath "$0")"
+REPO_DIR="$(dirname "$SCRIPT_PATH")"
+
+echo "[DEBUG] SCRIPT_PATH: $SCRIPT_PATH"
+echo "[DEBUG] REPO_DIR: $REPO_DIR"
+
 FRONTEND_DIR="$REPO_DIR/frontend_product_demo"
+
+echo "[DEBUG] Cerco frontend in: $FRONTEND_DIR"
 
 if [ -d "$FRONTEND_DIR" ]; then
   echo "[INFO] Avvio demo frontend da $FRONTEND_DIR"
   cd "$FRONTEND_DIR"
 
-  # Installo le dipendenze Python del frontend (se esiste il file)
   if [ -f "requirements.txt" ]; then
     pip install -r requirements.txt
   else
-    echo "[WARN] requirements.txt non trovato in $FRONTEND_DIR"
+    echo "[WARN] requirements.txt non trovato"
   fi
 
-  # Avvio la webapp Gradio (porta gestita da app.py)
   nohup python3 app.py > /tmp/frontend_demo.log 2>&1 &
   echo "[INFO] Frontend avviato (log: /tmp/frontend_demo.log)"
 else
   echo "[WARN] frontend_product_demo non trovato in $FRONTEND_DIR, salto avvio del frontend."
+fi
+end_product_demo non trovato in $FRONTEND_DIR, salto avvio del frontend."
 fi
 
 echo "✅ Setup completato!"
