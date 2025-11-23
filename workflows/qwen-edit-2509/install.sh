@@ -17,12 +17,12 @@ mkdir -p "$NODES_DIR"
 declare -a CUSTOM_NODES=(
     "ComfyUI-Manager|https://github.com/ltdrdata/ComfyUI-Manager"
     "rgthree-comfy|https://github.com/rgthree/rgthree-comfy"
-    "comfyui_essentials|https://github.com/cubiq/ComfyUI_essentials"
-    "comfyui-kjnodes|https://github.com/kijai/ComfyUI-KJNodes"
-    "ComfyUI_LayerStyle|https://github.com/chflame163/ComfyUI_LayerStyle"
-    "comfyui-inpaint-cropandstitch|https://github.com/lquesada/ComfyUI-Inpaint-CropAndStitch"
-    "qweneditutils|https://github.com/lrzjason/ComfyUI-QwenEdit-Utils"
-    "ComfyUI-QualityOfLifeSuit_Omar92|https://github.com/omar92/ComfyUI-QualityOfLifeSuit_Omar92"
+    "ComfyUI_essentials|https://github.com/cubiq/ComfyUI_essentials.git"
+    "ComfyUI-KJNodes|https://github.com/kijai/ComfyUI-KJNodes.git"
+    "ComfyUI_LayerStyle|https://github.com/chflame163/ComfyUI_LayerStyle.git"
+    "ComfyUI-Inpaint-CropAndStitch|https://github.com/lquesada/ComfyUI-Inpaint-CropAndStitch.git"
+    "Comfyui-QwenEditUtils|https://github.com/lrzjason/Comfyui-QwenEditUtils.git"
+    "ComfyUI-QualityOfLifeSuit_Omar92|https://github.com/omar92/ComfyUI-QualityOfLifeSuit_Omar92.git"
 )
 
 for node_entry in "${CUSTOM_NODES[@]}"; do
