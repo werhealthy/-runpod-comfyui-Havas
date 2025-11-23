@@ -626,22 +626,6 @@ echo "✅ Comando 'install-nodes' installato!"
 echo "✅ Comando 'download-lora' installato!"
 echo "   Usa: download-lora (da qualsiasi terminale)"
 
-echo "✅ Setup completato!"
-echo "   ComfyUI: http://0.0.0.0:8188"
-echo "   Jupyter: http://0.0.0.0:8888"
-echo "   Comando: download-lora"
-
-# Mantieni container attivo
-wait
-
-# Altri comandi di configurazione...
-
-# Aggiungo alias restartcomfy per il riavvio user-friendly
-echo "alias restartcomfy='/usr/local/bin/restart-comfyui.sh'" >> /root/.bashrc
-source /root/.bashrc
-
-# Eventuali altri comandi finali
-
 # === INSTALL WORKFLOWS COMMAND ===
 echo "🔧 Installing workflow manager..."
 
@@ -704,3 +688,20 @@ WORKFLOWS_SCRIPT
 chmod +x /usr/local/bin/workflows
 echo "alias workflows='/usr/local/bin/workflows'" >> /root/.bashrc
 echo "✅ Workflow manager installed! Type 'workflows' to use it."
+
+echo "✅ Setup completato!"
+echo "   ComfyUI: http://0.0.0.0:8188"
+echo "   Jupyter: http://0.0.0.0:8888"
+echo "   Comando: download-lora"
+
+# Mantieni container attivo
+wait
+
+# Altri comandi di configurazione...
+
+# Aggiungo alias restartcomfy per il riavvio user-friendly
+echo "alias restartcomfy='/usr/local/bin/restart-comfyui.sh'" >> /root/.bashrc
+source /root/.bashrc
+
+# Eventuali altri comandi finali
+
