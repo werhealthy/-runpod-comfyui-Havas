@@ -730,6 +730,49 @@ echo "✅ Setup completato!"
 echo " ComfyUI: http://0.0.0.0:8188"
 echo " Jupyter: http://0.0.0.0:8888"
 echo " Comando: download-lora"
+#############################################
+### FRONTEND PRODUCT DEMO (GRADIO)       ###
+#############################################
+
+# Repo GitHub che contiene la cartella frontend_product_demo
+FRONTEND_REPO="https://github.com/werhealthy/-runpod-comfyui-Havas.git"
+
+# Dove vogliamo mettere la cartella del frontend dentro il container
+FRONTEND_BASE="/tmp/havas_frontend"
+FRONTEND_DIR="$FRONTEND_BASE/frontend_product_demo"
+
+echo "[INFO] Setup frontend_product_demo..."
+
+# Clona il repo SOLO se non esiste già
+if [ ! -d "$FRONTEND_BASE" ]; then
+  echo "[INFO] Clono il repo $FRONTEND_REPO in $FRONTEND_BASE"
+  git clone --depth=1 "$FRONTEND_REPO" "$FRONTEND_BASE" || {
+    echo "[WARN] Impossibile clonare il repo $FRONTEND_REPO, salto avvio frontend."
+    FRONTEND_DIR=""
+  }
+fi
+
+if [ -n "${FRONTEND_DIR:-}" ] && [ -d "$FRONTEND_DIR" ]; then
+  echo "[INFO] frontend_product_demo trovato in $FRONTEND_DIR"
+  cd "$FRONTEND_DIR"
+
+  # Installa le dipendenze del frontend (se esiste requirements.txt)
+  if [ -f "requirements.txt" ]; then
+    echo "[INFO] Installo requirements frontend..."
+    pip install -r requirements.txt || echo "[WARN] installazione requirements fallita, continuo lo stesso."
+  else
+    echo "[WARN] requirements.txt non trovato in $FRONTEND_DIR"
+  fi
+
+  # Avvio Gradio (porta impostata dentro app.py: 0.0.0.0:7860)
+  echo "[INFO] Avvio app.py (Gradio) in background..."
+  nohup python3 app.py > /tmp/frontend_product_demo.log 2>&1 &
+  echo "[INFO] Frontend avviato! Log: /tmp/frontend_product_demo.log"
+
+else
+  echo "[WARN] frontend_product_demo non trovato, salto avvio del frontend."
+fi
+
 
 # Mantieni container attivo
 wait
