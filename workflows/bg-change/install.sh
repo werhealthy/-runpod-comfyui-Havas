@@ -10,17 +10,29 @@ wget -c --show-progress "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/res
 wget -c --show-progress "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/vae/qwen_image_vae.safetensors" -O $MODEL_DIR/vae/qwen_image_vae.safetensors
 wget -c --show-progress "https://huggingface.co/lightx2v/Qwen-Image-Lightning/resolve/main/Qwen-Image-Lightning-8steps-V1.1.safetensors" -O $MODEL_DIR/loras/Qwen-Image-Lightning-8steps-V1.1.safetensors
 
-# Custom nodes
-cd $NODE_DIR
-git clone --depth=1 https://github.com/rgthree/rgthree-comfy.git || echo "custom node già presente"
-git clone --depth=1 https://github.com/kijai/ComfyUI-KJNodes.git || echo "custom node già presente"
-git clone --depth=1 https://github.com/1038lab/ComfyUI-RMBG.git || echo "custom node già presente"
-git clone --depth=1 https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes.git || echo "custom node già presente"
-git clone --depth=1 https://github.com/lrzjason/Comfyui-QwenEditUtils.git || echo "custom node già presente"
-git clone --depth=1 https://github.com/ltdrdata/was-node-suite-comfyui.git || echo "custom node già presente"
+CUSTOM_NODES=(
+  "ComfyUI-KJNodes|https://github.com/kijai/ComfyUI-KJNodes.git"
+  "ComfyUI-RMBG|https://github.com/1038lab/ComfyUI-RMBG.git"
+  "rgthree-comfy|https://github.com/rgthree/rgthree-comfy.git"
+)
 
-# Installa le dipendenze di tutti i nodi
-for folder in /tmp/comfyui/custom_nodes/*; do
-  [ -f "${folder}/requirements.txt" ] && pip install -q --no-cache-dir -r "${folder}/requirements.txt"
-  [ -f "${folder}/install.py" ] && python "${folder}/install.py"
+CUSTOM_NODES_DIR="/tmp/comfyui/custom_nodes"
+
+for entry in "${CUSTOM_NODES[@]}"; do
+  NAME=$(echo "$entry" | cut -d'|' -f1)
+  REPO=$(echo "$entry" | cut -d'|' -f2)
+  DEST="$CUSTOM_NODES_DIR/$NAME"
+  if [ -d "$DEST/.git" ]; then
+    echo "🔄 Aggiorno $NAME"
+    cd "$DEST" && git pull && cd - > /dev/null
+  else
+    echo "📥 Clono $NAME"
+    git clone --depth=1 "$REPO" "$DEST"
+  fi
+done
+
+echo "🔧 Installa dipendenze Python custom nodes"
+for folder in $CUSTOM_NODES_DIR/*; do
+  [ -f "$folder/requirements.txt" ] && pip install -q --no-cache-dir -r "$folder/requirements.txt"
+  [ -f "$folder/install.py" ] && python "$folder/install.py"
 done
