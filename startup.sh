@@ -645,8 +645,8 @@ echo -e "${BLUE}╚════════════════════�
 echo ""
 echo -e "${GREEN}Available workflows:${NC}"
 echo ""
-echo "  1) Qwen Edit 2509 - Object Migration"
-echo "     └─ Image editing with object insertion/removal"
+echo "  1) BG Change"
+echo "     └─ Change background with Qwen Edit 2509"
 echo ""
 echo "  Q) Quit"
 echo ""
@@ -656,9 +656,9 @@ echo ""
 
 case "$choice" in
     1)
-        echo -e "${GREEN}Installing Qwen Edit 2509 workflow...${NC}"
+        echo -e "${GREEN}Installing BG Change workflow...${NC}"
         echo ""
-        INSTALL_URL="$REPO_BASE/qwen-edit-2509/install.sh"
+        INSTALL_URL="$REPO_BASE/bg-change/install.sh"
         if curl -f -s "$INSTALL_URL" > /tmp/workflow_install.sh; then
             chmod +x /tmp/workflow_install.sh
             bash /tmp/workflow_install.sh
