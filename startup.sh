@@ -688,20 +688,6 @@ WORKFLOWS_SCRIPT
 chmod +x /usr/local/bin/workflows
 echo "alias workflows='/usr/local/bin/workflows'" >> /root/.bashrc
 echo "✅ Workflow manager installed! Type 'workflows' to use it."
-
-echo "✅ Setup completato!"
-echo "   ComfyUI: http://0.0.0.0:8188"
-echo "   Jupyter: http://0.0.0.0:8888"
-echo "   Comando: download-lora"
-
-# Mantieni container attivo
-wait
-
-# Altri comandi di configurazione...
-
-# Aggiungo alias restartcomfy per il riavvio user-friendly
-echo "alias restartcomfy='/usr/local/bin/restart-comfyui.sh'" >> /root/.bashrc
-source /root/.bashrc
 #############################################
 ### AVVIO FRONTEND GRADIO PER LA DEMO AI ###
 #############################################
@@ -721,5 +707,19 @@ if [ -d "$FRONTEND_DIR" ]; then
 else
   echo "[WARN] frontend_product_demo non trovato, salto avvio del frontend."
 fi
+
+echo "✅ Setup completato!"
+echo "   ComfyUI: http://0.0.0.0:8188"
+echo "   Jupyter: http://0.0.0.0:8888"
+echo "   Comando: download-lora"
+
+# Mantieni container attivo
+wait
+
+# Altri comandi di configurazione...
+
+# Aggiungo alias restartcomfy per il riavvio user-friendly
+echo "alias restartcomfy='/usr/local/bin/restart-comfyui.sh'" >> /root/.bashrc
+source /root/.bashrc
 
 
