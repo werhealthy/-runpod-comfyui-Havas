@@ -1,4 +1,8 @@
 #!/bin/bash
+# Individua automaticamente la directory in cui si trova startup.sh
+THIS_REPO_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+echo "Repo detected at: $THIS_REPO_DIR"
 
 echo "🚀 Avvio ComfyUI con download modelli..."
 
@@ -692,29 +696,30 @@ echo "✅ Workflow manager installed! Type 'workflows' to use it."
 ### AVVIO FRONTEND GRADIO PER LA DEMO AI ###
 #############################################
 
-FRONTEND_DIR="/workspace/-runpod-comfyui-Havas/frontend_product_demo"
+# Path stabile derivato da startup.sh
+FRONTEND_DIR="$THIS_REPO_DIR/frontend_product_demo"
+
+echo "Cerco il frontend in: $FRONTEND_DIR"
 
 if [ -d "$FRONTEND_DIR" ]; then
-  echo "[INFO] Avvio demo frontend da $FRONTEND_DIR"
+    echo "✓ frontend_product_demo trovato"
 
-  cd "$FRONTEND_DIR"
+    cd "$FRONTEND_DIR"
 
-  # Installo le dipendenze Python del frontend
-  pip install -r requirements.txt
+    if [ -f "requirements.txt" ]; then
+        echo "== Installo dipendenze frontend =="
+        pip install -r requirements.txt
+    else
+        echo "[WARN] requirements.txt NON trovato"
+    fi
 
-  # Avvio la webapp Gradio sulla porta 7860
-  nohup python app.py --host 0.0.0.0 --port 7860 > /workspace/frontend_demo.log 2>&1 &
+    echo "== Avvio Gradio (app.py) su 0.0.0.0:7860 =="
+    nohup python3 app.py --port 7860 --host 0.0.0.0 > /tmp/frontend.log 2>&1 &
+
+    echo "✓ Frontend avviato"
 else
-  echo "[WARN] frontend_product_demo non trovato, salto avvio del frontend."
+    echo "[WARN] frontend_product_demo non trovato in $FRONTEND_DIR"
 fi
-
-echo "✅ Setup completato!"
-echo "   ComfyUI: http://0.0.0.0:8188"
-echo "   Jupyter: http://0.0.0.0:8888"
-echo "   Comando: download-lora"
-
-# Mantieni container attivo
-wait
 
 # Altri comandi di configurazione...
 
