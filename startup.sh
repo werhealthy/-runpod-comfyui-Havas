@@ -702,6 +702,24 @@ wait
 # Aggiungo alias restartcomfy per il riavvio user-friendly
 echo "alias restartcomfy='/usr/local/bin/restart-comfyui.sh'" >> /root/.bashrc
 source /root/.bashrc
+#############################################
+### AVVIO FRONTEND GRADIO PER LA DEMO AI ###
+#############################################
 
-# Eventuali altri comandi finali
+FRONTEND_DIR="/workspace/-runpod-comfyui-Havas/frontend_product_demo"
+
+if [ -d "$FRONTEND_DIR" ]; then
+  echo "[INFO] Avvio demo frontend da $FRONTEND_DIR"
+
+  cd "$FRONTEND_DIR"
+
+  # Installo le dipendenze Python del frontend
+  pip install -r requirements.txt
+
+  # Avvio la webapp Gradio sulla porta 7860
+  nohup python app.py --host 0.0.0.0 --port 7860 > /workspace/frontend_demo.log 2>&1 &
+else
+  echo "[WARN] frontend_product_demo non trovato, salto avvio del frontend."
+fi
+
 
