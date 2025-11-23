@@ -642,3 +642,65 @@ source /root/.bashrc
 
 # Eventuali altri comandi finali
 
+# === INSTALL WORKFLOWS COMMAND ===
+echo "🔧 Installing workflow manager..."
+
+cat > /usr/local/bin/workflows <<'WORKFLOWS_SCRIPT'
+#!/bin/bash
+REPO_BASE="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/workflows"
+
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+clear
+echo -e "${BLUE}╔══════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║          ComfyUI Workflow Manager               ║${NC}"
+echo -e "${BLUE}╚══════════════════════════════════════════════════╝${NC}"
+echo ""
+echo -e "${GREEN}Available workflows:${NC}"
+echo ""
+echo "  1) Qwen Edit 2509 - Object Migration"
+echo "     └─ Image editing with object insertion/removal"
+echo ""
+echo "  Q) Quit"
+echo ""
+echo -e "${BLUE}──────────────────────────────────────────────────${NC}"
+read -p "Select workflow number: " choice
+echo ""
+
+case "$choice" in
+    1)
+        echo -e "${GREEN}Installing Qwen Edit 2509 workflow...${NC}"
+        echo ""
+        INSTALL_URL="$REPO_BASE/qwen-edit-2509/install.sh"
+        if curl -f -s "$INSTALL_URL" > /tmp/workflow_install.sh; then
+            chmod +x /tmp/workflow_install.sh
+            bash /tmp/workflow_install.sh
+            rm /tmp/workflow_install.sh
+        else
+            echo -e "${RED}❌ Error downloading installation script${NC}"
+            exit 1
+        fi
+        ;;
+    [Qq])
+        echo "Exiting..."
+        exit 0
+        ;;
+    *)
+        echo -e "${RED}Invalid selection${NC}"
+        exit 1
+        ;;
+esac
+
+echo ""
+echo -e "${GREEN}╔══════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║  ✅ Installation complete!                       ║${NC}"
+echo -e "${GREEN}║  Run 'restartcomfy' to reload ComfyUI           ║${NC}"
+echo -e "${GREEN}╚══════════════════════════════════════════════════╝${NC}"
+WORKFLOWS_SCRIPT
+
+chmod +x /usr/local/bin/workflows
+echo "alias workflows='/usr/local/bin/workflows'" >> /root/.bashrc
+echo "✅ Workflow manager installed! Type 'workflows' to use it."
