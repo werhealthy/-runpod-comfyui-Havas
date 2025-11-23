@@ -1,0 +1,285 @@
+{
+  "1": {
+    "inputs": {
+      "prompt": [
+        "56",
+        0
+      ],
+      "target_size": 1024,
+      "target_vl_size": 384,
+      "upscale_method": "lanczos",
+      "crop_method": "center",
+      "instruction": "Describe the key features of the input image (color, shape, size, texture, objects, background), then explain how the user's text instruction should alter or modify the image. Generate a new image that meets the user's requirements while maintaining consistency with the original input where appropriate.",
+      "clip": [
+        "2",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ],
+      "vl_resize_image1": [
+        "47",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlusAdvance_lrzjason",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlusAdvance lrzjason"
+    }
+  },
+  "2": {
+    "inputs": {
+      "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+      "type": "qwen_image",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Load CLIP"
+    }
+  },
+  "3": {
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "6": {
+    "inputs": {
+      "seed": 42,
+      "steps": 8,
+      "cfg": 1,
+      "sampler_name": "er_sde",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "35",
+        0
+      ],
+      "positive": [
+        "1",
+        0
+      ],
+      "negative": [
+        "7",
+        0
+      ],
+      "latent_image": [
+        "1",
+        1
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "7": {
+    "inputs": {
+      "conditioning": [
+        "1",
+        0
+      ]
+    },
+    "class_type": "ConditioningZeroOut",
+    "_meta": {
+      "title": "ConditioningZeroOut"
+    }
+  },
+  "8": {
+    "inputs": {
+      "unet_name": "qwen_image_edit_2509_fp8_e4m3fn.safetensors",
+      "weight_dtype": "fp8_e4m3fn"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "9": {
+    "inputs": {
+      "samples": [
+        "6",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "15": {
+    "inputs": {
+      "lora_name": "Qwen-Image-Edit-2509-Lightning-8steps-V1.0-bf16.safe.safetensors",
+      "strength_model": 1.0000000000000002,
+      "model": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "LoraLoaderModelOnly"
+    }
+  },
+  "17": {
+    "inputs": {
+      "UNKNOWN": "none"
+    },
+    "_meta": {}
+  },
+  "29": {
+    "inputs": {
+      "lora_name": "White_to_Scene.safetensors",
+      "strength_model": 1,
+      "model": [
+        "15",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "LoraLoaderModelOnly"
+    }
+  },
+  "34": {
+    "inputs": {
+      "shift": 3,
+      "model": [
+        "29",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "ModelSamplingAuraFlow"
+    }
+  },
+  "35": {
+    "inputs": {
+      "strength": 1,
+      "model": [
+        "34",
+        0
+      ]
+    },
+    "class_type": "CFGNorm",
+    "_meta": {
+      "title": "CFGNorm"
+    }
+  },
+  "45": {
+    "inputs": {
+      "rgthree_comparer": {
+        "images": [
+          {
+            "name": "A",
+            "selected": true,
+            "url": "/view?filename=rgthree.compare._temp_cyyig_00015_gokrd_1761401640.jpg&type=temp&subfolder=&rand=0.8286395753313799&Rh-Comfy-Auth=eyJ1c2VySWQiOiI4Njk2NjA1YzczMThiNWYxMGRkOGM4NzQxZGY5OTJiYiIsInNpZ25FeHBpcmUiOjE3NjIwMDYyOTIyNzQsInRzIjoxNzYxNDAxNDkyMjc0LCJzaWduIjoiYTc1Y2YyNzVhYjdkMGZiNDUxOWU5NTQ1MDhkZTUyNDgifQ==&Rh-Identify=8696605c7318b5f10dd8c8741df992bb"
+          },
+          {
+            "name": "B",
+            "selected": true,
+            "url": "/view?filename=rgthree.compare._temp_cyyig_00016_uhqfq_1761401642.jpg&type=temp&subfolder=&rand=0.541665374451787&Rh-Comfy-Auth=eyJ1c2VySWQiOiI4Njk2NjA1YzczMThiNWYxMGRkOGM4NzQxZGY5OTJiYiIsInNpZ25FeHBpcmUiOjE3NjIwMDYyOTIyNzQsInRzIjoxNzYxNDAxNDkyMjc0LCJzaWduIjoiYTc1Y2YyNzVhYjdkMGZiNDUxOWU5NTQ1MDhkZTUyNDgifQ==&Rh-Identify=8696605c7318b5f10dd8c8741df992bb"
+          }
+        ]
+      },
+      "image_a": [
+        "49",
+        0
+      ],
+      "image_b": [
+        "9",
+        0
+      ]
+    },
+    "class_type": "Image Comparer (rgthree)",
+    "_meta": {
+      "title": "Image Comparer (rgthree) base model"
+    }
+  },
+  "47": {
+    "inputs": {
+      "UNKNOWN": "#222222",
+      "image": [
+        "49",
+        0
+      ]
+    },
+    "_meta": {}
+  },
+  "49": {
+    "inputs": {
+      "image": "f58e6f4c7bac8ba6d7d9ef34f98d07562f1726f4bff72f616b00287fd7bf552f.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "54": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "9",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "55": {
+    "inputs": {
+      "text": "白底图转场景"
+    },
+    "class_type": "CR Text",
+    "_meta": {
+      "title": "🔤 CR Text Trigger word,do not change"
+    }
+  },
+  "56": {
+    "inputs": {
+      "UNKNOWN": "true",
+      "text_a": [
+        "55",
+        0
+      ],
+      "text_b": [
+        "57",
+        0
+      ]
+    },
+    "_meta": {}
+  },
+  "57": {
+    "inputs": {
+      "text": "将图片中的女人放在一个室内酒吧的场景中"
+    },
+    "class_type": "CR Text",
+    "_meta": {
+      "title": "🔤 CR Text additional prompt"
+    }
+  },
+  "59": {
+    "inputs": {
+      "images": [
+        "47",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  }
+}
