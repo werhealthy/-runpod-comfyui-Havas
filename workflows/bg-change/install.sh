@@ -18,3 +18,9 @@ git clone --depth=1 https://github.com/1038lab/ComfyUI-RMBG.git || echo "custom 
 git clone --depth=1 https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes.git || echo "custom node già presente"
 git clone --depth=1 https://github.com/lrzjason/Comfyui-QwenEditUtils.git || echo "custom node già presente"
 git clone --depth=1 https://github.com/ltdrdata/was-node-suite-comfyui.git || echo "custom node già presente"
+
+# Installa le dipendenze di tutti i nodi
+for folder in /tmp/comfyui/custom_nodes/*; do
+  [ -f "${folder}/requirements.txt" ] && pip install -q --no-cache-dir -r "${folder}/requirements.txt"
+  [ -f "${folder}/install.py" ] && python "${folder}/install.py"
+done
