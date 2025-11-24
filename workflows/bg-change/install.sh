@@ -86,6 +86,46 @@ done
 # Cancella cache comfyui dei nodi (elimina vecchi riferimenti)
 rm -rf "$COMFY_DIR/user/default/node_cache/"*
 
+echo "pkgs installed" # (Questo è dove finisce il tuo script attuale per i requirements)
+
+# =================================================================
+# AGGIUNTA: FIX AUTOMATICO POST-INSTALLAZIONE
+# =================================================================
+echo "🔧 Esecuzione script di post-installazione (Fixing Missing Nodes)..."
+
+CD_CUSTOM="/tmp/comfyui/custom_nodes"
+
+# 1. FIX RGTHREE (Collega i file Javascript alla web root)
+if [ -d "$CD_CUSTOM/rgthree-comfy" ]; then
+    echo "⚡ Linking rgthree web assets..."
+    # Rgthree ha uno script interno per riparare i link
+    cd "$CD_CUSTOM/rgthree-comfy"
+    python install.py
+fi
+
+# 2. FIX GENERICO (Cerca ed esegue install.py in tutti i nodi)
+# Molti nodi come KJNodes, Comfyroll, etc. hanno bisogno di questo per completare il setup
+cd "$CD_CUSTOM"
+for d in */ ; do
+    if [ -f "$d/install.py" ]; then
+        # Evitiamo di rieseguire rgthree se lo abbiamo già fatto sopra
+        if [[ "$d" != *"rgthree"* ]]; then
+            echo "⚙️ Running install.py for $d"
+            cd "$d"
+            python install.py
+            cd ..
+        fi
+    fi
+done
+
+# 3. PULIZIA CACHE OBBLIGATORIA (Cruciale per forzare la rilettura dei nodi)
+echo "🧹 Pulizia cache ComfyUI..."
+rm -rf /tmp/comfyui/user/default/node_cache
+rm -rf /tmp/comfyui/__pycache__
+
+# Torna alla root per il resto dello script
+cd /tmp
+# =================================================================
 
 ###############################################
 # 4. FRONTEND (nuovo, integrato correttamente)
