@@ -1,181 +1,182 @@
-import json
-import io
-import uuid
-import time
-import random
-from pathlib import Path
-
 import gradio as gr
 import requests
+import json
+import random
+import time
+import os
+import io
+import sys
+import logging
 from PIL import Image
 
-# ComfyUI gira nello stesso pod
+# Configurazione Logger
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(message)s')
+
 COMFY_URL = "http://127.0.0.1:8188"
+WORKFLOW_FILE = "bg-change.json"
 
-# Workflow API esportato da ComfyUI
-WORKFLOW_PATH = Path(__file__).parent / "workflow_api.json"
+# --- HELPERS ---
+def check_server():
+    try: return requests.get(COMFY_URL).status_code == 200
+    except: return False
 
+def get_queue_status():
+    try:
+        res = requests.get(f"{COMFY_URL}/queue")
+        if res.status_code == 200:
+            data = res.json()
+            return len(data.get('queue_pending', [])) + len(data.get('queue_running', []))
+    except: pass
+    return 0
 
-def upload_image_to_comfy(pil_image: Image.Image):
-    """
-    Carica l'immagine su ComfyUI via /upload/image e restituisce il filename.
-    """
-    buf = io.BytesIO()
-    pil_image.save(buf, format="PNG")
-    buf.seek(0)
+def load_workflow():
+    if not os.path.exists(WORKFLOW_FILE): return None
+    with open(WORKFLOW_FILE, "r") as f: return json.load(f)
 
-    files = {"image": ("upload.png", buf, "image/png")}
-    resp = requests.post(f"{COMFY_URL}/upload/image", files=files)
-    resp.raise_for_status()
-    data = resp.json()
-    # Es: {"name": "upload.png", "subfolder": "", "type": "input"}
-    return data["name"]
-
-
-def queue_prompt(prompt_dict: dict):
-    client_id = str(uuid.uuid4())
-    payload = {"prompt": prompt_dict, "client_id": client_id}
-    r = requests.post(f"{COMFY_URL}/prompt", json=payload)
-    r.raise_for_status()
-    out = r.json()
-    return out["prompt_id"], client_id
-
-
-def wait_for_result(prompt_id: str):
-    """
-    Fa polling su /history finché il job non è finito e restituisce "outputs".
-    """
-    while True:
-        time.sleep(1)
-        r = requests.get(f"{COMFY_URL}/history/{prompt_id}")
-        if r.status_code != 200:
-            continue
-        history = r.json()
-        if prompt_id not in history:
-            continue
-        data = history[prompt_id]
-        if "outputs" in data and len(data["outputs"]) > 0:
-            return data["outputs"]
-
-
-def download_first_image(outputs: dict):
-    """
-    Cerca la prima immagine negli outputs e la scarica via /view.
-    """
-    for node_id, node_output in outputs.items():
-        if "images" not in node_output:
-            continue
-        img_info = node_output["images"][0]
-        params = {
-            "filename": img_info["filename"],
-            "subfolder": img_info.get("subfolder", ""),
-            "type": img_info.get("type", "output"),
-        }
-        r = requests.get(f"{COMFY_URL}/view", params=params)
-        r.raise_for_status()
-        return Image.open(io.BytesIO(r.content))
+def upload_image_to_comfy(pil_image):
+    try:
+        buffer = io.BytesIO()
+        pil_image.save(buffer, format="PNG")
+        buffer.seek(0)
+        files = {"image": ("input_gradio.png", buffer, "image/png")}
+        res = requests.post(f"{COMFY_URL}/upload/image", files=files, data={"overwrite": "true"})
+        if res.status_code == 200:
+            return res.json().get("name")
+    except:
+        pass
     return None
 
+# --- MOTORE PRINCIPALE ---
+def run_process(img, prompt, seed, rnd, progress=gr.Progress(track_tqdm=True)):
+    
+    log_txt = "🔵 Inizializzazione..."
+    yield None, log_txt
 
-def run_frontend(input_image, user_prompt, output_format, user_seed, random_seed):
-    """
-    Funzione chiamata da Gradio.
-    """
-    if input_image is None or not user_prompt:
-        return None
+    # 1. UPLOAD
+    progress(0.1, desc="Upload")
+    fname = upload_image_to_comfy(img)
+    if not fname: 
+        yield None, "❌ Errore Upload"
+        return
+    log_txt += f"\n✅ Upload OK: {fname}"
+    yield None, log_txt
 
-    # Seed: fisso o random
-    if random_seed:
-        effective_seed = random.randint(0, 2**32 - 1)
-    else:
+    # 2. SETUP WORKFLOW
+    wf = load_workflow()
+    s = random.randint(1, 9**15) if rnd else int(seed)
+    
+    # --- PATCHING ---
+    try:
+        # Immagine -> Nodo 49
+        if "49" in wf: wf["49"]["inputs"]["image"] = fname
+        # Prompt -> Nodo 57
+        if "57" in wf: wf["57"]["inputs"]["text"] = prompt
+        # Seed -> Nodo 6
+        if "6" in wf: wf["6"]["inputs"]["seed"] = s
+    except Exception as e:
+        yield None, f"❌ Errore ID Nodi: {e}"
+        return
+
+    # 3. INVIO
+    progress(0.3, desc="Invio richiesta")
+    clean_wf = {k: v for k, v in wf.items() if isinstance(v, dict) and 'class_type' in v}
+    
+    try:
+        req = requests.post(f"{COMFY_URL}/prompt", data=json.dumps({"prompt": clean_wf}).encode('utf-8'))
+        if req.status_code != 200:
+            yield None, f"❌ Errore Server: {req.text}"
+            return
+        pid = req.json().get("prompt_id")
+    except Exception as e:
+        yield None, f"❌ Errore Connessione: {e}"
+        return
+
+    log_txt += f"\n✅ In lavorazione (ID: {pid})"
+    yield None, log_txt
+
+    # 4. MONITORAGGIO E RECUPERO IMMAGINE
+    start_time = time.time()
+    
+    while True:
         try:
-            effective_seed = int(user_seed)
-        except (TypeError, ValueError):
-            effective_seed = 42  # fallback
+            hist = requests.get(f"{COMFY_URL}/history/{pid}").json()
+            if pid in hist:
+                # Abbiamo finito! Cerchiamo l'immagine GIUSTA (Type: output)
+                outputs = hist[pid]["outputs"]
+                target_img = None
+                
+                # Cerca in tutti i nodi di output
+                for nid in outputs:
+                    if "images" in outputs[nid]:
+                        for candidate in outputs[nid]["images"]:
+                            
+                            # --- FILTRO IMPORTANTE: SALTA I FILE TEMP ---
+                            if candidate.get("type") == "temp":
+                                continue 
+                            
+                            # PRENDI SOLO FILE OUTPUT
+                            if candidate.get("type") == "output":
+                                target_img = candidate
+                                break
+                    
+                    if target_img: break 
+                
+                if target_img:
+                    fn = target_img.get("filename")
+                    tp = target_img.get("type")
+                    sf = target_img.get("subfolder", "")
+                    
+                    log_txt += f"\n📥 Scarico Immagine Finale: {fn}"
+                    yield None, log_txt
+                    progress(0.9, desc="Download")
+                    
+                    res = requests.get(f"{COMFY_URL}/view", params={"filename": fn, "subfolder": sf, "type": tp})
+                    final_img = Image.open(io.BytesIO(res.content))
+                    
+                    log_txt += "\n🎉 COMPLETATO!"
+                    yield final_img, log_txt
+                    return
+                else:
+                    yield None, "❌ Errore: Nessuna immagine finale trovata (Solo preview temporanee)."
+                    return
 
-    # 1. Upload immagine a Comfy
-    img_name = upload_image_to_comfy(input_image)
+            # Feedback Coda
+            q = get_queue_status()
+            elapsed = int(time.time() - start_time)
+            msg = f"⏳ In coda: {q} lavori davanti a te..." if q > 1 else f"🎨 Generazione in corso... ({elapsed}s)"
+            progress(0.4 + (min(elapsed, 60)/100), desc=msg)
+            
+            time.sleep(1)
+            if elapsed > 600: 
+                yield None, "❌ Timeout (Server troppo lento)"
+                return
+                
+        except Exception as e:
+            print(f"Error: {e}")
+            time.sleep(1)
 
-    # 2. Carica workflow base (API)
-    workflow = json.loads(WORKFLOW_PATH.read_text())
+# --- UI (SENZA CSS CUSTOM) ---
+with gr.Blocks(title="Havas AI Tool") as demo:
+    gr.Markdown("## 🚀 Background Changer")
+    
+    with gr.Row():
+        with gr.Column():
+            im = gr.Image(label="Input", type="pil", height=300)
+            p = gr.Textbox(label="Prompt", lines=3)
+            with gr.Row():
+                s = gr.Number(value=42, label="Seed")
+                r = gr.Checkbox(value=True, label="Random")
+            btn = gr.Button("GENERA", variant="primary")
+            logs = gr.Textbox(label="Log", interactive=False, lines=6)
+            
+        with gr.Column():
+            out = gr.Image(label="Output Finale", interactive=False)
+    
+    btn.click(run_process, inputs=[im, p, s, r], outputs=[out, logs], show_progress="hidden")
 
-    # NOTA: Nel file API le chiavi dei nodi sono stringhe, es. "49", "57", "1", "6"
-
-    # 3. Patch del workflow con i tuoi parametri
-
-    # a) Immagine nel nodo LoadImage (id 49)
-    #    input "image" deve puntare al filename caricato
-    workflow["49"]["inputs"]["image"] = img_name
-
-    # b) Prompt utente nel nodo CR Text additional prompt (id 57)
-    workflow["57"]["inputs"]["text"] = user_prompt
-
-    # c) Formato → target_size e target_vl_size nel nodo Qwen (id 1)
-    if output_format == "Quadrato 1024x1024":
-        size = [1024, 1024]
-    elif output_format == "16:9 1280x720":
-        size = [1280, 720]
-    else:
-        size = [1024, 1024]
-
-    workflow["1"]["inputs"]["target_size"] = size
-    workflow["1"]["inputs"]["target_vl_size"] = size
-
-    # d) Seed nel KSampler (id 6)
-    workflow["6"]["inputs"]["seed"] = effective_seed
-
-    # 4. Manda il prompt a ComfyUI
-    prompt_id, client_id = queue_prompt(workflow)
-
-    # 5. Aspetta il risultato
-    outputs = wait_for_result(prompt_id)
-
-    # 6. Scarica l'immagine finale
-    result_img = download_first_image(outputs)
-    return result_img
-
-
-import gradio as gr
-# ... qui sopra lasci TUTTO il resto del tuo file (run_frontend, ecc.) ...
-
-
-def main():
-    """
-    Crea e restituisce l'interfaccia Gradio.
-    """
-    with gr.Blocks() as demo:
-        # 🔹 INCOLLA QUI DENTRO *ESATTAMENTE* IL TUO CODICE DI UI,
-        #    quello che avevi prima dentro main():
-
-        # esempio schematico (sostituiscilo col tuo vero codice):
-        # gr.Markdown("# BG Change Demo")
-        # input_image = gr.Image(label="Immagine di input")
-        # user_prompt = gr.Textbox(label="Prompt")
-        # output_format = gr.Radio([...], label="Output format")
-        # user_seed = gr.Number(...)
-        # random_seed = gr.Checkbox(...)
-        # run_btn = gr.Button("Genera")
-        # output_image = gr.Image(label="Risultato", type="pil")
-        # run_btn.click(
-        #     fn=run_frontend,
-        #     inputs=[input_image, user_prompt, output_format, user_seed, random_seed],
-        #     outputs=output_image,
-        # )
-
-        # 👆 L’importante è che TUTTO il codice UI sia dentro il with gr.Blocks() as demo:
-
-        pass  # <-- RIMUOVI QUESTA RIGA dopo aver incollato il tuo codice UI
-
-    # ritorno l’oggetto demo per usarlo fuori
-    return demo
-
+print("🚀 AVVIO SU PORTA 7860...")
+demo.queue().launch(server_name="0.0.0.0", server_port=7860, share=True, allowed_paths=["/tmp"])
 
 if __name__ == "__main__":
-    # costruiamo la UI
-    demo = main()
-
-    # e SOLO qui la lanciamo
-    demo.launch(
-        server_name="0.0.0.0",
-        server_port=7860,
-    )
+    pass
+EOF
