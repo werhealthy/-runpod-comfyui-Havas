@@ -136,44 +136,24 @@ def run_frontend(input_image, user_prompt, output_format, user_seed, random_seed
 
 
 def main():
-    with gr.Blocks(title="Product Photography Demo") as demo:
-        gr.Markdown("## Product Photography demo (Qwen + ComfyUI)\n"
-                    "Carica un'immagine di prodotto, scrivi il prompt della scena e scegli il formato.")
+    """
+    Crea e restituisce l'interfaccia Gradio.
+    """
+    with gr.Blocks() as demo:
+        # 🔹 qui dentro lasci TUTTO quello che avevi già:
+        #    - input_image
+        #    - user_prompt
+        #    - output_format
+        #    - user_seed, random_seed
+        #    - run_btn, output_image
+        #    - run_btn.click(...)
+        #
+        # NON mettere più demo.launch qui dentro, deve solo costruire la UI.
+        pass  # <-- togli questa riga e rimetti il tuo codice
 
-        with gr.Row():
-            input_image = gr.Image(label="Immagine di prodotto", type="pil")
-            with gr.Column():
-                user_prompt = gr.Textbox(
-                    label="Prompt scena",
-                    placeholder="es. metti il prodotto su un tavolo di marmo in una cucina moderna…",
-                    lines=3,
-                )
-                output_format = gr.Dropdown(
-                    ["Quadrato 1024x1024", "16:9 1280x720"],
-                    value="Quadrato 1024x1024",
-                    label="Formato output",
-                )
-                user_seed = gr.Number(
-                    value=42,
-                    precision=0,
-                    label="Seed (usato se 'Seed random' è disattivato)",
-                )
-                random_seed = gr.Checkbox(
-                    value=True,
-                    label="Seed random ad ogni generazione",
-                )
-                run_btn = gr.Button("Genera")
-
-        output_image = gr.Image(label="Risultato", type="pil")
-
-        run_btn.click(
-            fn=run_frontend,
-            inputs=[input_image, user_prompt, output_format, user_seed, random_seed],
-            outputs=output_image,
-        )
-
-    demo.launch(server_name="0.0.0.0", server_port=7860)
+    return demo
 
 
 if __name__ == "__main__":
-    main()
+    demo
+
