@@ -27,15 +27,20 @@ mkdir -p \
 # 2. INSTALLA / CLONA COMFYUI
 ########################################
 
-if [ ! -d "$COMFY_DIR/.git" ]; then
+if [ ! -d "$COMFY_DIR" ]; then
   echo "⚠️  ComfyUI non trovato, clonazione in corso..."
   git clone --depth 1 https://github.com/comfyanonymous/ComfyUI.git "$COMFY_DIR"
-  cd "$COMFY_DIR"
-  pip install --no-cache-dir -r requirements.txt
 else
   echo "✓ ComfyUI già presente in $COMFY_DIR"
-  cd "$COMFY_DIR"
 fi
+
+cd "$COMFY_DIR"
+
+# Se ci sono requirements, installali comunque
+if [ -f "requirements.txt" ]; then
+  pip install --no-cache-dir -r requirements.txt
+fi
+
 
 ########################################
 # 3. ALIAS restartcomfy
