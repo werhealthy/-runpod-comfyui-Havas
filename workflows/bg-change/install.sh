@@ -1,35 +1,92 @@
 #!/usr/bin/env bash
 set -e
 
-echo "[BG CHANGE] Installazione workflow BG Change..."
+echo "==============================================="
+echo "   ✅ Installazione workflow: BG Change"
+echo "==============================================="
 
 COMFY_DIR="/tmp/comfyui"
+MODEL_DIR="$COMFY_DIR/models"
+CUSTOM_NODES_DIR="$COMFY_DIR/custom_nodes"
 WORKFLOWS_DIR="$COMFY_DIR/user/default/workflows"
-mkdir -p "$WORKFLOWS_DIR"
 
-########################################
-# 1. COPIA DEL WORKFLOW JSON IN COMFYUI
-########################################
+mkdir -p \
+  "$MODEL_DIR/diffusion_models" \
+  "$MODEL_DIR/text_encoders" \
+  "$MODEL_DIR/vae" \
+  "$MODEL_DIR/loras" \
+  "$CUSTOM_NODES_DIR" \
+  "$WORKFLOWS_DIR"
 
-# Se cambi nome al file JSON, aggiorna questa riga:
-WORKFLOW_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/bg-change/bg-change.json"
+###############################################
+# 1. COPIA DEL FILE JSON DEL WORKFLOW
+###############################################
 
-echo "[BG CHANGE] Scarico il file JSON del workflow..."
+WORKFLOW_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/main/workflows/bg-change/bg-change.json"
+
+echo "📄 Copio workflow JSON..."
 curl -fSL "$WORKFLOW_URL" -o "$WORKFLOWS_DIR/bg-change.json"
 
-echo "[BG CHANGE] Workflow copiato in: $WORKFLOWS_DIR/bg-change.json"
+echo "✔️ Workflow copiato in $WORKFLOWS_DIR/bg-change.json"
 
-########################################
-# 2. (IN FUTURO) MODELLI E CUSTOM NODES
-########################################
-# Qui in futuro puoi aggiungere:
-# - comandi wget per checkpoint / lora
-# - git clone per custom nodes specifici
-# Per ora lasciamo vuoto.
 
-########################################
-# 3. SETUP FRONTEND (usa frontend_product_demo)
-########################################
+###############################################
+# 2. INSTALLAZIONE MODELLI (tuo codice originale)
+###############################################
+
+echo "📥 Installazione modelli..."
+
+wget -c --show-progress "https://huggingface.co/aidiffuser/Qwen-Image-Edit-2509/resolve/main/Qwen-Image-Edit-2509_fp8_e4m3fn.safetensors" \
+  -O $MODEL_DIR/diffusion_models/Qwen-Image-Edit-2509_fp8_e4m3fn.safetensors
+
+wget -c --show-progress "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors" \
+  -O $MODEL_DIR/text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors
+
+wget -c --show-progress "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/vae/qwen_image_vae.safetensors" \
+  -O $MODEL_DIR/vae/qwen_image_vae.safetensors
+
+wget -c --show-progress "https://huggingface.co/lightx2v/Qwen-Image-Lightning/resolve/main/Qwen-Image-Lightning-8steps-V1.1.safetensors" \
+  -O $MODEL_DIR/loras/Qwen-Image-Lightning-8steps-V1.1.safetensors
+
+
+###############################################
+# 3. INSTALLAZIONE CUSTOM NODES (tuo codice originale)
+###############################################
+
+echo "🧩 Installazione Custom Nodes..."
+
+CUSTOM_NODES=(
+  "ComfyUI-KJNodes|https://github.com/kijai/ComfyUI-KJNodes.git"
+  "ComfyUI-RMBG|https://github.com/1038lab/ComfyUI-RMBG.git"
+  "rgthree-comfy|https://github.com/rgthree/rgthree-comfy.git"
+)
+
+for entry in "${CUSTOM_NODES[@]}"; do
+  NAME=$(echo "$entry" | cut -d'|' -f1)
+  REPO=$(echo "$entry" | cut -d'|' -f2)
+  DEST="$CUSTOM_NODES_DIR/$NAME"
+  
+  if [ -d "$DEST/.git" ]; then
+    echo "🔄 Aggiorno $NAME"
+    cd "$DEST" && git pull && cd - > /dev/null
+  else
+    echo "📥 Clono $NAME"
+    git clone --depth=1 "$REPO" "$DEST"
+  fi
+done
+
+echo "📦 Installo requirements dei custom nodes..."
+for folder in $CUSTOM_NODES_DIR/*; do
+  [ -f "$folder/requirements.txt" ] && pip install -q --no-cache-dir -r "$folder/requirements.txt"
+  [ -f "$folder/install.py" ] && python "$folder/install.py"
+done
+
+
+###############################################
+# 4. FRONTEND (nuovo, integrato correttamente)
+###############################################
+
+echo "🌐 Setup Frontend BG Change..."
 
 FRONTEND_ROOT="/tmp/havas_frontends"
 FRONTEND_DIR="$FRONTEND_ROOT/bg-change"
@@ -37,42 +94,46 @@ REPO_GIT="https://github.com/werhealthy/-runpod-comfyui-Havas.git"
 
 mkdir -p "$FRONTEND_ROOT"
 
+# Clono il repo SOLO per prendere frontend_product_demo
 if [ ! -d "$FRONTEND_DIR" ]; then
-  echo "[BG CHANGE] Clono il repo per recuperare il frontend..."
-  git clone --depth 1 "$REPO_GIT" "$FRONTEND_DIR-repo"
+  echo "📥 Clono repo per recuperare il frontend..."
+  git clone --depth 1 "$REPO_GIT" "$FRONTEND_DIR-tmp"
 
-  if [ -d "$FRONTEND_DIR-repo/frontend_product_demo" ]; then
-    mv "$FRONTEND_DIR-repo/frontend_product_demo" "$FRONTEND_DIR"
-    rm -rf "$FRONTEND_DIR-repo"
-    echo "[BG CHANGE] Frontend copiato in $FRONTEND_DIR"
+  if [ -d "$FRONTEND_DIR-tmp/frontend_product_demo" ]; then
+    mv "$FRONTEND_DIR-tmp/frontend_product_demo" "$FRONTEND_DIR"
+    rm -rf "$FRONTEND_DIR-tmp"
   else
-    echo "[BG CHANGE] ATTENZIONE: non trovo 'frontend_product_demo' nel repo clonato."
+    echo "❌ ERRORE: frontend_product_demo non trovato"
   fi
-else
-  echo "[BG CHANGE] Frontend già presente in $FRONTEND_DIR"
 fi
 
 if [ -d "$FRONTEND_DIR" ]; then
-  echo "[BG CHANGE] Installo requirements del frontend..."
-  if [ -f "$FRONTEND_DIR/requirements.txt" ]; then
-    pip install -r "$FRONTEND_DIR/requirements.txt"
-  else
-    echo "[BG CHANGE] Nessun requirements.txt trovato nel frontend."
-  fi
 
-  echo "[BG CHANGE] Creo comando 'run-bg-change-frontend'..."
-  cat >/usr/local/bin/run-bg-change-frontend <<EOF
+  echo "📦 Installo requirements frontend..."
+  pip install -r "$FRONTEND_DIR/requirements.txt"
+
+  echo "⚙️ Creo comando 'run-bg-change-frontend'..."
+cat <<EOF >/usr/local/bin/run-bg-change-frontend
 #!/usr/bin/env bash
 cd "$FRONTEND_DIR"
 nohup python3 app.py > /tmp/bg-change-frontend.log 2>&1 &
-echo "Frontend BG Change avviato su http://0.0.0.0:7860 (log: /tmp/bg-change-frontend.log)"
+echo "✨ Frontend BG Change avviato su http://0.0.0.0:7860"
 EOF
+
   chmod +x /usr/local/bin/run-bg-change-frontend
 
-  echo "[BG CHANGE] Avvio subito il frontend..."
-  /usr/local/bin/run-bg-change-frontend
-else
-  echo "[BG CHANGE] Frontend non disponibile, salto setup Gradio."
+  echo "🚀 Avvio frontend BG Change..."
+  run-bg-change-frontend
 fi
 
-echo "[BG CHANGE] Installazione completata. Se vuoi, esegui 'restartcomfy' per ricaricare ComfyUI."
+
+###############################################
+# 5. FINE
+###############################################
+
+echo "==============================================="
+echo "  🎉 BG Change installato!"
+echo "  Usa 'run-bg-change-frontend' per riavviare la UI"
+echo "  Esegui 'restartcomfy' per ricaricare ComfyUI"
+echo "==============================================="
+
