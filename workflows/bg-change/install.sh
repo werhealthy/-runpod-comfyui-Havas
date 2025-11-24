@@ -48,34 +48,33 @@ wget -c --show-progress "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/res
 wget -c --show-progress "https://huggingface.co/lightx2v/Qwen-Image-Lightning/resolve/main/Qwen-Image-Lightning-8steps-V1.1.safetensors" \
   -O $MODEL_DIR/loras/Qwen-Image-Lightning-8steps-V1.1.safetensors
 
+wget -c --show-progress "https://huggingface.co/dx8152/Qwen-Image-Edit-2509-White_to_Scene/resolve/main/%E7%99%BD%E5%BA%95%E5%9B%BE%E8%BD%AC%E5%9C%BA%E6%99%AF.safetensors" \
+  -O $MODEL_DIR/loras/white_to_scene.safetensors
 
 ###############################################
-# 3. INSTALLAZIONE CUSTOM NODES (tuo codice originale)
+# 3. INSTALLAZIONE CUSTOM NODES (fix robusto)
 ###############################################
 
-echo "🧩 Installazione Custom Nodes..."
+echo "🧹 Pulizia profonda custom nodes e re-clone..."
 
 CUSTOM_NODES=(
   "ComfyUI-KJNodes|https://github.com/kijai/ComfyUI-KJNodes.git"
   "ComfyUI-RMBG|https://github.com/1038lab/ComfyUI-RMBG.git"
   "rgthree-comfy|https://github.com/rgthree/rgthree-comfy.git"
+  "ComfyUI_essentials|https://github.com/cubiq/ComfyUI_essentials.git"
 )
 
 for entry in "${CUSTOM_NODES[@]}"; do
   NAME=$(echo "$entry" | cut -d'|' -f1)
   REPO=$(echo "$entry" | cut -d'|' -f2)
   DEST="$CUSTOM_NODES_DIR/$NAME"
-  
-  if [ -d "$DEST/.git" ]; then
-    echo "🔄 Aggiorno $NAME"
-    cd "$DEST" && git pull && cd - > /dev/null
-  else
-    echo "📥 Clono $NAME"
-    git clone --depth=1 "$REPO" "$DEST"
-  fi
+  # Elimina SEMPRE la cartella prima di ogni clone.
+  [ -d "$DEST" ] && rm -rf "$DEST"
+  echo "📥 Clono da zero $NAME"
+  git clone --depth=1 "$REPO" "$DEST"
 done
 
-echo "📦 Installo requirements dei custom nodes..."
+echo "📦 Installo requirements dei custom nodes (deep install)..."
 for folder in $CUSTOM_NODES_DIR/*; do
   [ -f "$folder/requirements.txt" ] && pip install -q --no-cache-dir -r "$folder/requirements.txt"
   [ -f "$folder/install.py" ] && python "$folder/install.py"
