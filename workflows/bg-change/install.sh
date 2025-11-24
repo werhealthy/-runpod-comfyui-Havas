@@ -113,14 +113,33 @@ if [ -d "$FRONTEND_DIR" ]; then
   pip install -r "$FRONTEND_DIR/requirements.txt"
 
   echo "⚙️ Creo comando 'run-bg-change-frontend'..."
-cat <<EOF >/usr/local/bin/run-bg-change-frontend
+cat <<'EOF' >/usr/local/bin/run-bg-change-frontend
 #!/usr/bin/env bash
-cd "$FRONTEND_DIR"
-nohup python3 app.py > /tmp/bg-change-frontend.log 2>&1 &
-echo "✨ Frontend BG Change avviato su http://0.0.0.0:7860"
+FRONTEND_DIR="/tmp/havas_frontends/bg-change"
+LOG_FILE="/tmp/bg-change-frontend.log"
+
+cd "$FRONTEND_DIR" || {
+  echo "❌ FRONTEND: cartella $FRONTEND_DIR non trovata"
+  exit 1
+}
+
+echo "[FRONTEND] Avvio app.py su 0.0.0.0:7860..."
+nohup python3 app.py > "$LOG_FILE" 2>&1 &
+
+PID=$!
+sleep 5
+
+if ps -p "$PID" > /dev/null 2>&1; then
+  echo "✨ Frontend BG Change avviato (PID $PID) su http://0.0.0.0:7860"
+  echo "   Log: $LOG_FILE"
+else
+  echo "❌ Frontend BG Change non è rimasto in esecuzione."
+  echo "   Ultime righe log:"
+  tail -20 "$LOG_FILE" || echo "   Nessun log trovato."
+fi
 EOF
 
-  chmod +x /usr/local/bin/run-bg-change-frontend
+chmod +x /usr/local/bin/run-bg-change-frontend
 
   echo "🚀 Avvio frontend BG Change..."
   run-bg-change-frontend
