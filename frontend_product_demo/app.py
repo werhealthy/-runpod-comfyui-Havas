@@ -135,25 +135,47 @@ def run_frontend(input_image, user_prompt, output_format, user_seed, random_seed
     return result_img
 
 
+import gradio as gr
+# ... qui sopra lasci TUTTO il resto del tuo file (run_frontend, ecc.) ...
+
+
 def main():
     """
     Crea e restituisce l'interfaccia Gradio.
     """
     with gr.Blocks() as demo:
-        # 🔹 qui dentro lasci TUTTO quello che avevi già:
-        #    - input_image
-        #    - user_prompt
-        #    - output_format
-        #    - user_seed, random_seed
-        #    - run_btn, output_image
-        #    - run_btn.click(...)
-        #
-        # NON mettere più demo.launch qui dentro, deve solo costruire la UI.
-        pass  # <-- togli questa riga e rimetti il tuo codice
+        # 🔹 INCOLLA QUI DENTRO *ESATTAMENTE* IL TUO CODICE DI UI,
+        #    quello che avevi prima dentro main():
 
+        # esempio schematico (sostituiscilo col tuo vero codice):
+        # gr.Markdown("# BG Change Demo")
+        # input_image = gr.Image(label="Immagine di input")
+        # user_prompt = gr.Textbox(label="Prompt")
+        # output_format = gr.Radio([...], label="Output format")
+        # user_seed = gr.Number(...)
+        # random_seed = gr.Checkbox(...)
+        # run_btn = gr.Button("Genera")
+        # output_image = gr.Image(label="Risultato", type="pil")
+        # run_btn.click(
+        #     fn=run_frontend,
+        #     inputs=[input_image, user_prompt, output_format, user_seed, random_seed],
+        #     outputs=output_image,
+        # )
+
+        # 👆 L’importante è che TUTTO il codice UI sia dentro il with gr.Blocks() as demo:
+
+        pass  # <-- RIMUOVI QUESTA RIGA dopo aver incollato il tuo codice UI
+
+    # ritorno l’oggetto demo per usarlo fuori
     return demo
 
 
 if __name__ == "__main__":
-    demo
+    # costruiamo la UI
+    demo = main()
 
+    # e SOLO qui la lanciamo
+    demo.launch(
+        server_name="0.0.0.0",
+        server_port=7860,
+    )
