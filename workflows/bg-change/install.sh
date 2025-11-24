@@ -17,6 +17,23 @@ mkdir -p \
   "$MODEL_DIR/loras" \
   "$CUSTOM_NODES_DIR" \
   "$WORKFLOWS_DIR"
+  
+###############################################
+# 0. SISTEMA E DIPENDENZE BASE (AGGIUNTO)
+###############################################
+echo "🚀 Installazione dipendenze di sistema..."
+
+# Aggiorna apt e installa i font mancanti (FIX PER COMFYROLL) e ffmpeg
+# Questo risolve l'errore "FileNotFoundError: /usr/share/fonts/truetype"
+apt-get update && apt-get install -y fonts-dejavu-core ffmpeg libgl1-mesa-glx
+
+echo "🚀 Installazione tool Python..."
+# Installa il motore per download veloce (FIX PER RMBG)
+# Questo risolve l'errore "hf_transfer package is not available"
+pip install hf_transfer huggingface_hub
+
+# Attiva il download veloce
+export HF_HUB_ENABLE_HF_TRANSFER=1
 
 ###############################################
 # 1. COPIA DEL FILE JSON DEL WORKFLOW
@@ -58,6 +75,7 @@ wget -c --show-progress "https://huggingface.co/dx8152/Qwen-Image-Edit-2509-Whit
 echo "🧩 Installazione Custom Nodes..."
 
 CUSTOM_NODES=(
+  "ComfyUI-Manager|https://github.com/ltdrdata/ComfyUI-Manager.git"
   "ComfyUI-KJNodes|https://github.com/kijai/ComfyUI-KJNodes.git"
   "ComfyUI-RMBG|https://github.com/1038lab/ComfyUI-RMBG.git"
   "rgthree-comfy|https://github.com/rgthree/rgthree-comfy.git"
@@ -77,55 +95,46 @@ for entry in "${CUSTOM_NODES[@]}"; do
   git clone --depth=1 "$REPO" "$DEST"
 done
 
-echo "📦 Installo requirements dei custom nodes..."
-for folder in $CUSTOM_NODES_DIR/*; do
-  [ -f "$folder/requirements.txt" ] && pip install -q --no-cache-dir -r "$folder/requirements.txt"
-  [ -f "$folder/install.py" ] && python "$folder/install.py"
+echo "📦 Configurazione finale dei Nodi..."
+
+# 1. Installa Requirements e Script di Setup (Solo se esistono)
+for folder in /tmp/comfyui/custom_nodes/*; do
+  if [ -f "$folder/requirements.txt" ]; then
+     pip install -q --no-cache-dir -r "$folder/requirements.txt"
+  fi
+  
+  # Questo controllo [ -f ] impedisce allo script di bloccarsi se install.py manca
+  if [ -f "$folder/install.py" ]; then
+     echo "⚙️ Configuro nodo: $(basename "$folder")"
+     cd "$folder"
+     python install.py
+     cd ..
+  fi
 done
 
-# Cancella cache comfyui dei nodi (elimina vecchi riferimenti)
-rm -rf "$COMFY_DIR/user/default/node_cache/"*
-
-echo "pkgs installed" # (Questo è dove finisce il tuo script attuale per i requirements)
-
-# =================================================================
-# AGGIUNTA: FIX AUTOMATICO POST-INSTALLAZIONE
-# =================================================================
-echo "🔧 Esecuzione script di post-installazione (Fixing Missing Nodes)..."
-
-CD_CUSTOM="/tmp/comfyui/custom_nodes"
-
-# 1. FIX RGTHREE (Collega i file Javascript alla web root)
-if [ -d "$CD_CUSTOM/rgthree-comfy" ]; then
-    echo "⚡ Linking rgthree web assets..."
-    # Rgthree ha uno script interno per riparare i link
-    cd "$CD_CUSTOM/rgthree-comfy"
-    python install.py
+# 2. FIX SPECIFICO PER RGTHREE (Copia Manuale)
+# Dato che install.py non esiste più, copiamo i file grafici a mano
+if [ -d "/tmp/comfyui/custom_nodes/rgthree-comfy/web" ]; then
+    echo "⚡ FIX: Copio manualmente interfaccia rgthree..."
+    mkdir -p /tmp/comfyui/web/extensions/rgthree
+    cp -rf /tmp/comfyui/custom_nodes/rgthree-comfy/web/* /tmp/comfyui/web/extensions/rgthree/
 fi
 
-# 2. FIX GENERICO (Cerca ed esegue install.py in tutti i nodi)
-# Molti nodi come KJNodes, Comfyroll, etc. hanno bisogno di questo per completare il setup
-cd "$CD_CUSTOM"
-for d in */ ; do
-    if [ -f "$d/install.py" ]; then
-        # Evitiamo di rieseguire rgthree se lo abbiamo già fatto sopra
-        if [[ "$d" != *"rgthree"* ]]; then
-            echo "⚙️ Running install.py for $d"
-            cd "$d"
-            python install.py
-            cd ..
-        fi
-    fi
-done
+# 3. RIPARAZIONE VIA MANAGER (Cruciale per KJNodes e RMBG)
+if [ -d "/tmp/comfyui/custom_nodes/ComfyUI-Manager" ]; then
+    echo "🔧 Eseguo riparazione dipendenze Manager..."
+    cd /tmp/comfyui/custom_nodes/ComfyUI-Manager
+    pip install -q -r requirements.txt
+    python cm-cli.py restore-dependencies
+fi
 
-# 3. PULIZIA CACHE OBBLIGATORIA (Cruciale per forzare la rilettura dei nodi)
-echo "🧹 Pulizia cache ComfyUI..."
+# 4. PULIZIA CACHE
+echo "🧹 Pulizia cache finale..."
 rm -rf /tmp/comfyui/user/default/node_cache
 rm -rf /tmp/comfyui/__pycache__
 
-# Torna alla root per il resto dello script
+# Torna alla cartella temporanea per proseguire con il frontend
 cd /tmp
-# =================================================================
 
 ###############################################
 # 4. FRONTEND (nuovo, integrato correttamente)
