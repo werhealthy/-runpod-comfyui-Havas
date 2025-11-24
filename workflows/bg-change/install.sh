@@ -52,29 +52,31 @@ wget -c --show-progress "https://huggingface.co/dx8152/Qwen-Image-Edit-2509-Whit
   -O $MODEL_DIR/loras/white_to_scene.safetensors
 
 ###############################################
-# 3. INSTALLAZIONE CUSTOM NODES (fix robusto)
+# 3. INSTALLAZIONE CUSTOM NODES (aggiornata)
 ###############################################
 
-echo "🧹 Pulizia profonda custom nodes e re-clone..."
+echo "🧩 Installazione Custom Nodes..."
 
 CUSTOM_NODES=(
   "ComfyUI-KJNodes|https://github.com/kijai/ComfyUI-KJNodes.git"
   "ComfyUI-RMBG|https://github.com/1038lab/ComfyUI-RMBG.git"
   "rgthree-comfy|https://github.com/rgthree/rgthree-comfy.git"
   "ComfyUI_essentials|https://github.com/cubiq/ComfyUI_essentials.git"
+  "ComfyUI_Comfyroll_CustomNodes|https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes.git"
+  "Comfyui-QwenEditUtils|https://github.com/lrzjason/Comfyui-QwenEditUtils.git"
+  "was-node-suite-comfyui|https://github.com/ltdrdata/was-node-suite-comfyui.git"
 )
 
 for entry in "${CUSTOM_NODES[@]}"; do
   NAME=$(echo "$entry" | cut -d'|' -f1)
   REPO=$(echo "$entry" | cut -d'|' -f2)
   DEST="$CUSTOM_NODES_DIR/$NAME"
-  # Elimina SEMPRE la cartella prima di ogni clone.
   [ -d "$DEST" ] && rm -rf "$DEST"
   echo "📥 Clono da zero $NAME"
   git clone --depth=1 "$REPO" "$DEST"
 done
 
-echo "📦 Installo requirements dei custom nodes (deep install)..."
+echo "📦 Installo requirements dei custom nodes..."
 for folder in $CUSTOM_NODES_DIR/*; do
   [ -f "$folder/requirements.txt" ] && pip install -q --no-cache-dir -r "$folder/requirements.txt"
   [ -f "$folder/install.py" ] && python "$folder/install.py"
