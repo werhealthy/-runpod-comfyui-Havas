@@ -67,6 +67,14 @@ wget -c --show-progress "https://huggingface.co/lightx2v/Qwen-Image-Lightning/re
 
 wget -c --show-progress "https://huggingface.co/dx8152/Qwen-Image-Edit-2509-White_to_Scene/resolve/main/%E7%99%BD%E5%BA%95%E5%9B%BE%E8%BD%AC%E5%9C%BA%E6%99%AF.safetensors" \
   -O $MODEL_DIR/loras/white_to_scene.safetensors
+  
+# --- MODELLI PER SUPIR UPSCALER ---
+# Nota: Questi vanno in 'checkpoints' standard
+wget -c --show-progress "https://huggingface.co/Kijai/SUPIR_pruned/resolve/main/SUPIR-v0F_fp16.safetensors?download=true" \
+  -O $MODEL_DIR/checkpoints/SUPIR-v0F_fp16.safetensors
+
+wget -c --show-progress "https://civitai.com/api/download/models/357609" \
+  -O $MODEL_DIR/checkpoints/juggernautXL_v9Rdphoto2Lightning.safetensors
 
 ###############################################
 # 3. INSTALLAZIONE CUSTOM NODES (robusto e universale)
@@ -83,6 +91,7 @@ CUSTOM_NODES=(
   "ComfyUI_Comfyroll_CustomNodes|https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes.git"
   "Comfyui-QwenEditUtils|https://github.com/lrzjason/Comfyui-QwenEditUtils.git"
   "was-node-suite-comfyui|https://github.com/ltdrdata/was-node-suite-comfyui.git"
+  "ComfyUI-SUPIR|https://github.com/kijai/ComfyUI-SUPIR.git"
 )
 
 for entry in "${CUSTOM_NODES[@]}"; do
