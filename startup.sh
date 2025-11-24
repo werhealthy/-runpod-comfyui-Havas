@@ -27,19 +27,21 @@ mkdir -p \
 # 2. INSTALLA / CLONA COMFYUI
 ########################################
 
-if [ ! -d "$COMFY_DIR" ]; then
-  echo "⚠️  ComfyUI non trovato, clonazione in corso..."
+if [ ! -f "$COMFY_DIR/main.py" ]; then
+  echo "⚠️  ComfyUI non presente o incompleto in $COMFY_DIR, lo (ri)clono..."
+  rm -rf "$COMFY_DIR"
   git clone --depth 1 https://github.com/comfyanonymous/ComfyUI.git "$COMFY_DIR"
 else
-  echo "✓ ComfyUI già presente in $COMFY_DIR"
+  echo "✓ ComfyUI trovato in $COMFY_DIR"
 fi
 
 cd "$COMFY_DIR"
 
-# Se ci sono requirements, installali comunque
 if [ -f "requirements.txt" ]; then
+  echo "📦 Installo/aggiorno requirements di ComfyUI..."
   pip install --no-cache-dir -r requirements.txt
 fi
+
 
 
 ########################################
