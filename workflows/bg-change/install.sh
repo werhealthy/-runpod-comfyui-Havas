@@ -204,9 +204,36 @@ fi
 # 5. FINE
 ###############################################
 
+###############################################
+# 5. RIAVVIO AUTOMATICO COMFYUI (Auto-Restart)
+###############################################
+echo "🔄 Riavvio forzato di ComfyUI per applicare le modifiche..."
+
+# 1. Uccide il processo ComfyUI attuale (se esiste)
+pkill -f "python main.py" || true
+pkill -f "python3 main.py" || true
+
+echo "⏳ Attendo chiusura processi..."
+sleep 3
+
+# 2. Rilancia ComfyUI in background con i tuoi parametri corretti
+echo "🚀 Avvio ComfyUI Pulito..."
+cd /tmp/comfyui
+
+# Usa nohup per mantenerlo vivo anche se chiudi il terminale
+nohup python main.py \
+    --listen 0.0.0.0 \
+    --port 8188 \
+    --enable-cors-header \
+    --force-fp16 \
+    --preview-method auto \
+    > /tmp/comfyui/comfyui.log 2>&1 &
+
+# 3. Messaggio Finale
 echo "==============================================="
-echo "  🎉 BG Change installato!"
-echo "  Usa 'run-bg-change-frontend' per riavviare la UI"
-echo "  Esegui 'restartcomfy' per ricaricare ComfyUI"
+echo "  🎉 INSTALLAZIONE COMPLETATA & RIAVVIATO!"
+echo "  ComfyUI è attivo. Attendi 10-20 secondi."
+echo "  Frontend BG Change: run-bg-change-frontend"
+echo "  Log ComfyUI: tail -f /tmp/comfyui/comfyui.log"
 echo "==============================================="
 
