@@ -52,7 +52,7 @@ wget -c --show-progress "https://huggingface.co/dx8152/Qwen-Image-Edit-2509-Whit
   -O $MODEL_DIR/loras/white_to_scene.safetensors
 
 ###############################################
-# 3. INSTALLAZIONE CUSTOM NODES (aggiornata)
+# 3. INSTALLAZIONE CUSTOM NODES (robusto e universale)
 ###############################################
 
 echo "🧩 Installazione Custom Nodes..."
@@ -71,7 +71,8 @@ for entry in "${CUSTOM_NODES[@]}"; do
   NAME=$(echo "$entry" | cut -d'|' -f1)
   REPO=$(echo "$entry" | cut -d'|' -f2)
   DEST="$CUSTOM_NODES_DIR/$NAME"
-  [ -d "$DEST" ] && rm -rf "$DEST"
+  # Pulizia profonda e rimozione eventuale vecchia repo con nome diverso/simile
+  rm -rf "$DEST"
   echo "📥 Clono da zero $NAME"
   git clone --depth=1 "$REPO" "$DEST"
 done
@@ -81,6 +82,9 @@ for folder in $CUSTOM_NODES_DIR/*; do
   [ -f "$folder/requirements.txt" ] && pip install -q --no-cache-dir -r "$folder/requirements.txt"
   [ -f "$folder/install.py" ] && python "$folder/install.py"
 done
+
+# Cancella cache comfyui dei nodi (elimina vecchi riferimenti)
+rm -rf "$COMFY_DIR/user/default/node_cache/"*
 
 
 ###############################################
