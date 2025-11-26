@@ -275,8 +275,25 @@ chmod +x /usr/local/bin/run-aliexpress-n8n
 echo "✔️  Script creato: run-aliexpress-n8n"
 echo ""
 
+###############################################
+# 5. AVVIO AUTOMATICO N8N DOPO INSTALLAZIONE
+###############################################
 
-# 3. Messaggio Finale
+echo "🚀 Avvio n8n per AliExpress..."
+
+if [ -f /usr/local/bin/run-aliexpress-n8n ]; then
+    # Avvia n8n in background
+    nohup /usr/local/bin/run-aliexpress-n8n >/tmp/n8n.log 2>&1 &
+    echo "✔️  n8n avviato in background sulla porta 5678"
+    echo "📍 Log: /tmp/n8n.log"
+else
+    echo "❌ run-aliexpress-n8n non trovato! Possibile errore installazione."
+fi
+
+###############################################
+# 6. MESSAGGIO FINALE
+###############################################
+
 echo "==============================================="
 echo "  🎉 INSTALLAZIONE COMPLETATA & RIAVVIATO!"
 echo "  ComfyUI è attivo. Attendi 10-20 secondi."
