@@ -11,7 +11,7 @@ CUSTOM_NODES_DIR="$COMFY_DIR/custom_nodes"
 WORKFLOWS_DIR="$COMFY_DIR/user/default/workflows"
 
 mkdir -p \
-  "$MODEL_DIR/diffusion_model
+  "$MODEL_DIR/diffusion_models" \
   "$MODEL_DIR/text_encoders" \
   "$MODEL_DIR/vae" \
   "$MODEL_DIR/loras" \
