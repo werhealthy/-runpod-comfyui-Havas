@@ -243,22 +243,24 @@ nohup python main.py \
 
 echo "📦 Installazione n8n (orchestratore)..."
 
-# Verifica presenza di npm
-if ! command -v npm &> /dev/null; then
-    echo "⚠️  npm non presente. Lo installo..."
-    apt-get update
-    apt-get install -y npm
+# 1. Installa Node.js 18 (da NodeSource) se node è troppo vecchio o assente
+if ! command -v node &> /dev/null || ! node -e 'process.exit(process.versions.node.split(".")[0] >= 18 ? 0 : 1)'; then
+  echo "⚠️  Node.js assente o troppo vecchio. Installo Node 18..."
+  curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+  apt-get install -y nodejs
 fi
 
-# Installazione n8n globale
+echo "✔️  Versione Node in uso: $(node -v)"
+
+# 2. Installa n8n globale (con Node recente)
 if ! command -v n8n &> /dev/null; then
-    echo "➡️  Installo n8n..."
-    npm install -g n8n
+  echo "➡️  Installo n8n..."
+  npm install -g n8n
 else
-    echo "✔️  n8n già installato."
+  echo "✔️  n8n già installato."
 fi
 
-# Creazione script per avvio n8n on-demand
+# 3. Crea script di avvio on-demand
 echo "⚙️  Creo comando 'run-aliexpress-n8n'..."
 cat <<'EOF' >/usr/local/bin/run-aliexpress-n8n
 #!/usr/bin/env bash
@@ -272,6 +274,7 @@ EOF
 chmod +x /usr/local/bin/run-aliexpress-n8n
 echo "✔️  Script creato: run-aliexpress-n8n"
 echo ""
+
 
 # 3. Messaggio Finale
 echo "==============================================="
