@@ -254,10 +254,12 @@ echo "✔️  Versione Node in uso: $(node -v)"
 
 # 2. Installa n8n globale (con Node recente)
 if ! command -v n8n &> /dev/null; then
-  echo "➡️  Installo n8n..."
-  npm install -g n8n
+  echo "➡️  Installo n8n (versione compatibile con Node 18)..."
+  npm install -g n8n@1.39.1
 else
   echo "✔️  n8n già installato."
+fi
+
 fi
 
 # 3. Crea script di avvio on-demand
