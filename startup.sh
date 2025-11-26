@@ -165,7 +165,10 @@ echo ""
 echo -e "${GREEN}Workflow disponibili:${NC}"
 echo ""
 echo " 1) BG Change"
-echo "    └─ Workflow di esempio (background change con Qwen)"
+echo " └─ Workflow di esempio (background change con Qwen)"
+echo ""
+echo " 2) AliExpress"
+echo " └─ Workflow video semplice per AliExpress"
 echo ""
 echo " Q) Esci"
 echo ""
@@ -174,9 +177,8 @@ read -p "Seleziona workflow: " choice
 echo ""
 
 case "$choice" in
-  1)
-    NAME="bg-change"
-    ;;
+  1) NAME="bg-change" ;;
+  2) NAME="aliexpress" ;;
   [Qq])
     echo "Uscita..."
     exit 0
