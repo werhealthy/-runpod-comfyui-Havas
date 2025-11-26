@@ -238,12 +238,12 @@ nohup python main.py \
     --preview-method auto \
     > /tmp/comfyui/comfyui.log 2>&1 &
 ###############################################
-# 5. # INSTALLAZIONE N8N (orchestratore low-code)
+# 4. INSTALLAZIONE N8N (ORCHESTRATORE)
 ###############################################
 
 echo "📦 Installazione n8n (orchestratore)..."
 
-# 1. Installa Node.js 18 (da NodeSource) se node è troppo vecchio o assente
+# 4.1 Installa Node 18 se assente o troppo vecchio
 if ! command -v node &> /dev/null || ! node -e 'process.exit(process.versions.node.split(".")[0] >= 18 ? 0 : 1)'; then
   echo "⚠️  Node.js assente o troppo vecchio. Installo Node 18..."
   curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
@@ -252,7 +252,7 @@ fi
 
 echo "✔️  Versione Node in uso: $(node -v)"
 
-# 2. Installa n8n globale (con Node recente)
+# 4.2 Installa n8n versione compatibile con Node 18
 if ! command -v n8n &> /dev/null; then
   echo "➡️  Installo n8n (versione compatibile con Node 18)..."
   npm install -g n8n@1.39.1
@@ -260,9 +260,7 @@ else
   echo "✔️  n8n già installato."
 fi
 
-fi
-
-# 3. Crea script di avvio on-demand
+# 4.3 Crea script di avvio per n8n
 echo "⚙️  Creo comando 'run-aliexpress-n8n'..."
 cat <<'EOF' >/usr/local/bin/run-aliexpress-n8n
 #!/usr/bin/env bash
