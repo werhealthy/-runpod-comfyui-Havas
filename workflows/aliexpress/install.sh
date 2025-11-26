@@ -2,7 +2,7 @@
 set -e
 
 echo "==============================================="
-echo "   ✅ Installazione workflow: BG Change"
+echo "  ✅ Installazione workflow: AliExpress"
 echo "==============================================="
 
 COMFY_DIR="/tmp/comfyui"
