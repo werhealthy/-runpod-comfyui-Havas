@@ -146,73 +146,54 @@ rm -rf /tmp/comfyui/__pycache__
 cd /tmp
 
 ###############################################
-# 4. FRONTEND (nuovo, integrato correttamente)
+# 4. FRONTEND ALIEXPRESS (Gradio)
 ###############################################
 
-echo "🌐 Setup Frontend BG Change..."
+echo " Setup frontend AliExpress..."
 
 FRONTEND_ROOT="/tmp/havas_frontends"
-FRONTEND_DIR="$FRONTEND_ROOT/bg-change"
-REPO_GIT="https://github.com/werhealthy/-runpod-comfyui-Havas.git"
+FRONTEND_DIR="$FRONTEND_ROOT/aliexpress"
+mkdir -p "$FRONTEND_DIR"
 
-mkdir -p "$FRONTEND_ROOT"
+# Scarica l'app Gradio specifica di AliExpress
+APP_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress/app.py"
+echo " Scarico app.py AliExpress..."
+curl -fSL "$APP_URL" -o "$FRONTEND_DIR/app.py"
 
-# Clono il repo SOLO per prendere frontend_product_demo
-if [ ! -d "$FRONTEND_DIR" ]; then
-  echo "📥 Clono repo per recuperare il frontend..."
-  git clone --depth 1 "$REPO_GIT" "$FRONTEND_DIR-tmp"
+# Requirements per il frontend (Gradio + richieste HTTP)
+echo " Installo requirements frontend AliExpress..."
+pip install -q --no-cache-dir gradio requests
 
-  if [ -d "$FRONTEND_DIR-tmp/frontend_product_demo" ]; then
-    mv "$FRONTEND_DIR-tmp/frontend_product_demo" "$FRONTEND_DIR"
-    rm -rf "$FRONTEND_DIR-tmp"
-  else
-    echo "❌ ERRORE: frontend_product_demo non trovato"
-  fi
-fi
-
-if [ -d "$FRONTEND_DIR" ]; then
-
-  echo "📦 Installo requirements frontend..."
-  pip install -r "$FRONTEND_DIR/requirements.txt"
-
-  echo "⚙️ Creo comando 'run-bg-change-frontend'..."
-cat <<'EOF' >/usr/local/bin/run-bg-change-frontend
+echo "⚙️ Creo comando 'run-aliexpress-frontend'..."
+cat <<'EOF' >/usr/local/bin/run-aliexpress-frontend
 #!/usr/bin/env bash
-FRONTEND_DIR="/tmp/havas_frontends/bg-change"
-LOG_FILE="/tmp/bg-change-frontend.log"
+FRONTEND_DIR="/tmp/havas_frontends/aliexpress"
+LOG_FILE="/tmp/aliexpress-frontend.log"
 
 cd "$FRONTEND_DIR" || {
   echo "❌ FRONTEND: cartella $FRONTEND_DIR non trovata"
   exit 1
 }
 
-echo "[FRONTEND] Avvio app.py su 0.0.0.0:7860..."
+echo "[FRONTEND] Avvio app.py AliExpress su 0.0.0.0:7860..."
 nohup python3 app.py > "$LOG_FILE" 2>&1 &
-
 PID=$!
-sleep 5
 
+sleep 5
 if ps -p "$PID" > /dev/null 2>&1; then
-  echo "✨ Frontend BG Change avviato (PID $PID) su http://0.0.0.0:7860"
-  echo "   Log: $LOG_FILE"
+  echo "✨ Frontend AliExpress avviato (PID $PID) su http://0.0.0.0:7860"
+  echo " Log: $LOG_FILE"
 else
-  echo "❌ Frontend BG Change non è rimasto in esecuzione."
-  echo "   Ultime righe log:"
-  tail -20 "$LOG_FILE" || echo "   Nessun log trovato."
+  echo "❌ Frontend AliExpress non è rimasto in esecuzione."
+  echo " Ultime righe log:"
+  tail -20 "$LOG_FILE" || echo " Nessun log trovato."
 fi
 EOF
 
-chmod +x /usr/local/bin/run-bg-change-frontend
+chmod +x /usr/local/bin/run-aliexpress-frontend
 
-  echo "🚀 Avvio frontend BG Change..."
-  run-bg-change-frontend
-fi
-
-
-###############################################
-# 5. FINE
-###############################################
-
+echo " Avvio frontend AliExpress..."
+run-aliexpress-frontend
 ###############################################
 # 5. RIAVVIO AUTOMATICO COMFYUI (Auto-Restart)
 ###############################################
@@ -238,7 +219,7 @@ nohup python main.py \
     --preview-method auto \
     > /tmp/comfyui/comfyui.log 2>&1 &
 ###############################################
-# 4. INSTALLAZIONE N8N (ORCHESTRATORE)
+# 6. INSTALLAZIONE N8N (ORCHESTRATORE)
 ###############################################
 
 echo "📦 Installazione n8n (orchestratore)..."
@@ -274,9 +255,28 @@ EOF
 chmod +x /usr/local/bin/run-aliexpress-n8n
 echo "✔️  Script creato: run-aliexpress-n8n"
 echo ""
+###############################################
+# 7. WORKFLOW N8N (solo download file)
+###############################################
+
+echo " Scarico workflow n8n AliExpress..."
+
+N8N_WF_DIR="/tmp/n8n_workflows/aliexpress"
+mkdir -p "$N8N_WF_DIR"
+
+curl -fSL "https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress/_ALIEXPRESS__01___Image_Generator.json" \
+  -o "$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json"
+
+# ⚠️ CONTROLLA IL NOME ESATTO DEL SECONDO FILE NEL REPO
+curl -fSL "https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress/_ALIEXPRESS__02___Video_Generator.json" \
+  -o "$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json" || echo "❌ Controlla il nome del file Video_Generator.json"
+
+echo "✔️ Workflow n8n salvati in $N8N_WF_DIR"
+echo "   Importali da: n8n → Workflows → Import from File"
+
 
 ###############################################
-# 5. AVVIO AUTOMATICO N8N DOPO INSTALLAZIONE
+# 8. AVVIO AUTOMATICO N8N DOPO INSTALLAZIONE
 ###############################################
 
 echo "🚀 Avvio n8n per AliExpress..."
@@ -291,7 +291,7 @@ else
 fi
 
 ###############################################
-# 6. MESSAGGIO FINALE
+# 9. MESSAGGIO FINALE
 ###############################################
 
 echo "==============================================="
