@@ -1,0 +1,424 @@
+{
+  "name": "[ALIEXPRESS] 01 - Image Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8188/prompt",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    \"prompt\": {\n      \"1\": {\n        \"inputs\": {\n          \"prompt\": $json.prompt,\n          \"target_size\": 1024,\n          \"target_vl_size\": 384,\n          \"upscale_method\": \"lanczos\",\n          \"crop_method\": \"center\",\n          \"instruction\": \"Describe the key features of the input image (color, shape, size, texture, objects, background), then explain how the user's text instruction should alter or modify the image. Generate a new image that meets the user's requirements while maintaining consistency with the original input where appropriate.\",\n          \"clip\": [\"2\", 0],\n          \"vae\": [\"3\", 0],\n          \"vl_resize_image1\": [\"47\", 0]\n        },\n        \"class_type\": \"TextEncodeQwenImageEditPlusAdvance_lrzjason\",\n        \"_meta\": {\n          \"title\": \"TextEncodeQwenImageEditPlusAdvance lrzjason\"\n        }\n      },\n      \"2\": {\n        \"inputs\": {\n          \"clip_name\": \"qwen_2.5_vl_7b_fp8_scaled.safetensors\",\n          \"type\": \"qwen_image\",\n          \"device\": \"default\"\n        },\n        \"class_type\": \"CLIPLoader\",\n        \"_meta\": {\n          \"title\": \"Load CLIP\"\n        }\n      },\n      \"3\": {\n        \"inputs\": {\n          \"vae_name\": \"qwen_image_vae.safetensors\"\n        },\n        \"class_type\": \"VAELoader\",\n        \"_meta\": {\n          \"title\": \"Load VAE\"\n        }\n      },\n      \"6\": {\n        \"inputs\": {\n          \"seed\": Math.floor(Math.random() * 1000000000000000),\n          \"steps\": 8,\n          \"cfg\": 1,\n          \"sampler_name\": \"er_sde\",\n          \"scheduler\": \"simple\",\n          \"denoise\": 1,\n          \"model\": [\"35\", 0],\n          \"positive\": [\"1\", 0],\n          \"negative\": [\"7\", 0],\n          \"latent_image\": [\"1\", 1]\n        },\n        \"class_type\": \"KSampler\",\n        \"_meta\": {\n          \"title\": \"KSampler\"\n        }\n      },\n      \"7\": {\n        \"inputs\": {\n          \"conditioning\": [\"1\", 0]\n        },\n        \"class_type\": \"ConditioningZeroOut\",\n        \"_meta\": {\n          \"title\": \"ConditioningZeroOut\"\n        }\n      },\n      \"8\": {\n        \"inputs\": {\n          \"unet_name\": \"Qwen-Image-Edit-2509_fp8_e4m3fn.safetensors\",\n          \"weight_dtype\": \"fp8_e4m3fn\"\n        },\n        \"class_type\": \"UNETLoader\",\n        \"_meta\": {\n          \"title\": \"Load Diffusion Model\"\n        }\n      },\n      \"9\": {\n        \"inputs\": {\n          \"samples\": [\"6\", 0],\n          \"vae\": [\"3\", 0]\n        },\n        \"class_type\": \"VAEDecode\",\n        \"_meta\": {\n          \"title\": \"VAE Decode\"\n        }\n      },\n      \"15\": {\n        \"inputs\": {\n          \"lora_name\": \"Qwen-Image-Lightning-8steps-V1.1.safetensors\",\n          \"strength_model\": 1.0000000000000002,\n          \"model\": [\"8\", 0]\n        },\n        \"class_type\": \"LoraLoaderModelOnly\",\n        \"_meta\": {\n          \"title\": \"LoraLoaderModelOnly\"\n        }\n      },\n      \"17\": {\n        \"inputs\": {\n          \"model_name\": \"qwen\\\\Qwen-Image-Edit-2509-Q4_0.gguf\",\n          \"extra_model_name\": \"none\",\n          \"dequant_dtype\": \"default\",\n          \"patch_dtype\": \"default\",\n          \"patch_on_device\": false,\n          \"enable_fp16_accumulation\": false,\n          \"attention_override\": \"none\"\n        },\n        \"class_type\": \"GGUFLoaderKJ\",\n        \"_meta\": {\n          \"title\": \"GGUFLoaderKJ\"\n        }\n      },\n      \"29\": {\n        \"inputs\": {\n          \"lora_name\": \"white_to_scene.safetensors\",\n          \"strength_model\": 1,\n          \"model\": [\"15\", 0]\n        },\n        \"class_type\": \"LoraLoaderModelOnly\",\n        \"_meta\": {\n          \"title\": \"LoraLoaderModelOnly\"\n        }\n      },\n      \"34\": {\n        \"inputs\": {\n          \"shift\": 3,\n          \"model\": [\"29\", 0]\n        },\n        \"class_type\": \"ModelSamplingAuraFlow\",\n        \"_meta\": {\n          \"title\": \"ModelSamplingAuraFlow\"\n        }\n      },\n      \"35\": {\n        \"inputs\": {\n          \"strength\": 1,\n          \"model\": [\"34\", 0]\n        },\n        \"class_type\": \"CFGNorm\",\n        \"_meta\": {\n          \"title\": \"CFGNorm\"\n        }\n      },\n      \"45\": {\n        \"inputs\": {\n          \"rgthree_comparer\": {\n            \"images\": [\n              {\n                \"name\": \"A\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_eigkm_00003_.png&type=temp&subfolder=&rand=0.6273124169981674\"\n              },\n              {\n                \"name\": \"B\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_eigkm_00004_.png&type=temp&subfolder=&rand=0.3841891419252026\"\n              }\n            ]\n          },\n          \"image_a\": [\"49\", 0],\n          \"image_b\": [\"9\", 0]\n        },\n        \"class_type\": \"Image Comparer (rgthree)\",\n        \"_meta\": {\n          \"title\": \"Image Comparer (rgthree) base model\"\n        }\n      },\n      \"47\": {\n        \"inputs\": {\n          \"model\": \"RMBG-2.0\",\n          \"sensitivity\": 1,\n          \"process_res\": 1024,\n          \"mask_blur\": 0,\n          \"mask_offset\": 0,\n          \"invert_output\": false,\n          \"refine_foreground\": false,\n          \"background\": \"Color\",\n          \"background_color\": \"#222222\",\n          \"image\": [\"49\", 0]\n        },\n        \"class_type\": \"RMBG\",\n        \"_meta\": {\n          \"title\": \"Remove Background (RMBG)\"\n        }\n      },\n      \"49\": {\n        \"inputs\": {\n          \"image\": $json.image_filename\n        },\n        \"class_type\": \"LoadImage\",\n        \"_meta\": {\n          \"title\": \"Load Image\"\n        }\n      },\n      \"54\": {\n        \"inputs\": {\n          \"filename_prefix\": \"Aliexpress_Test\", // <--- MODIFICATO: Percorso fisso e sicuro\n          \"images\": [\"9\", 0]\n        },\n        \"class_type\": \"SaveImage\",\n        \"_meta\": {\n          \"title\": \"Save Image\"\n        }\n      },\n      \"55\": {\n        \"inputs\": {\n          \"text\": \"白底图转场景\"\n        },\n        \"class_type\": \"CR Text\",\n        \"_meta\": {\n          \"title\": \"🔤 CR Text Trigger word,do not change\"\n        }\n      },\n      \"56\": {\n        \"inputs\": {\n          \"delimiter\": \", \",\n          \"clean_whitespace\": \"true\",\n          \"text_a\": [\"55\", 0],\n          \"text_b\": [\"57\", 0]\n        },\n        \"class_type\": \"Text Concatenate\",\n        \"_meta\": {\n          \"title\": \"Text Concatenate\"\n        }\n      },\n      \"57\": {\n        \"inputs\": {\n          \"text\": $json.prompt\n        },\n        \"class_type\": \"CR Text\",\n        \"_meta\": {\n          \"title\": \"🔤 CR Text additional prompt\"\n        }\n      },\n      \"59\": {\n        \"inputs\": {\n          \"images\": [\"47\", 0]\n        },\n        \"class_type\": \"PreviewImage\",\n        \"_meta\": {\n          \"title\": \"Preview Image\"\n        }\n      },\n      \"63\": {\n        \"inputs\": {\n          \"seed\": Math.floor(Math.random() * 1000000000000000),\n          \"steps\": 8,\n          \"cfg\": 1,\n          \"sampler_name\": \"er_sde\",\n          \"scheduler\": \"simple\",\n          \"denoise\": 1,\n          \"model\": [\"35\", 0],\n          \"positive\": [\"1\", 0],\n          \"negative\": [\"73\", 0],\n          \"latent_image\": [\"1\", 1]\n        },\n        \"class_type\": \"KSampler\",\n        \"_meta\": {\n          \"title\": \"KSampler\"\n        }\n      },\n      \"64\": {\n        \"inputs\": {\n          \"samples\": [\"63\", 0],\n          \"vae\": [\"3\", 0]\n        },\n        \"class_type\": \"VAEDecode\",\n        \"_meta\": {\n          \"title\": \"VAE Decode\"\n        }\n      },\n      \"65\": {\n        \"inputs\": {\n          \"filename_prefix\": \"Aliexpress_Test\", // <--- MODIFICATO\n          \"images\": [\"64\", 0]\n        },\n        \"class_type\": \"SaveImage\",\n        \"_meta\": {\n          \"title\": \"Save Image\"\n        }\n      },\n      \"66\": {\n        \"inputs\": {\n          \"rgthree_comparer\": {\n            \"images\": [\n              {\n                \"name\": \"A\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_ygzph_00003_.png&type=temp&subfolder=&rand=0.546581772031995\"\n              },\n              {\n                \"name\": \"B\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_ygzph_00004_.png&type=temp&subfolder=&rand=0.8702932293516649\"\n              }\n            ]\n          },\n          \"image_a\": [\"49\", 0],\n          \"image_b\": [\"64\", 0]\n        },\n        \"class_type\": \"Image Comparer (rgthree)\",\n        \"_meta\": {\n          \"title\": \"Image Comparer (rgthree) base model\"\n        }\n      },\n      \"67\": {\n        \"inputs\": {\n          \"seed\": Math.floor(Math.random() * 1000000000000000),\n          \"steps\": 8,\n          \"cfg\": 1,\n          \"sampler_name\": \"er_sde\",\n          \"scheduler\": \"simple\",\n          \"denoise\": 1,\n          \"model\": [\"35\", 0],\n          \"positive\": [\"1\", 0],\n          \"negative\": [\"74\", 0],\n          \"latent_image\": [\"1\", 1]\n        },\n        \"class_type\": \"KSampler\",\n        \"_meta\": {\n          \"title\": \"KSampler\"\n        }\n      },\n      \"68\": {\n        \"inputs\": {\n          \"samples\": [\"67\", 0],\n          \"vae\": [\"3\", 0]\n        },\n        \"class_type\": \"VAEDecode\",\n        \"_meta\": {\n          \"title\": \"VAE Decode\"\n        }\n      },\n      \"69\": {\n        \"inputs\": {\n          \"filename_prefix\": \"Aliexpress_Test\", // <--- MODIFICATO\n          \"images\": [\"68\", 0]\n        },\n        \"class_type\": \"SaveImage\",\n        \"_meta\": {\n          \"title\": \"Save Image\"\n        }\n      },\n      \"70\": {\n        \"inputs\": {\n          \"rgthree_comparer\": {\n            \"images\": [\n              {\n                \"name\": \"A\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_klxti_00003_.png&type=temp&subfolder=&rand=0.8258536168316297\"\n              },\n              {\n                \"name\": \"B\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_klxti_00004_.png&type=temp&subfolder=&rand=0.9515632332584741\"\n              }\n            ]\n          },\n          \"image_a\": [\"49\", 0],\n          \"image_b\": [\"68\", 0]\n        },\n        \"class_type\": \"Image Comparer (rgthree)\",\n        \"_meta\": {\n          \"title\": \"Image Comparer (rgthree) base model\"\n        }\n      },\n      \"73\": {\n        \"inputs\": {\n          \"conditioning\": [\"1\", 0]\n        },\n        \"class_type\": \"ConditioningZeroOut\",\n        \"_meta\": {\n          \"title\": \"ConditioningZeroOut\"\n        }\n      },\n      \"74\": {\n        \"inputs\": {\n          \"conditioning\": [\"1\", 0]\n        },\n        \"class_type\": \"ConditioningZeroOut\",\n        \"_meta\": {\n          \"title\": \"ConditioningZeroOut\"\n        }\n      }\n    },\n    \"client_id\": \"n8n\"\n  })\n}}",
+        "options": {}
+      },
+      "id": "14aa21f7-cab5-4ab1-8df1-7caf3389fe69",
+      "name": "Upload To ComfyUI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2160,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5a3f0a51-346e-4342-abc5-373169dd5f80",
+              "name": "image_filename",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "6ffac232-8342-4985-8b16-eca96abe68a7",
+              "name": "prompt",
+              "value": "={{ $('Webhook').item.json.body.prompt }}",
+              "type": "string"
+            },
+            {
+              "id": "74afd65c-a275-4da9-85dd-474255b934db",
+              "name": "session_id",
+              "value": "=session_{{ new Date().getTime() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeBinary": true
+        }
+      },
+      "id": "6712c267-a921-410d-9fd9-f0e48d2a2691",
+      "name": "Prepare data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        1700,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "id": "a95ae55f-fc7c-4f87-a06a-06d727d2d3dc",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2600,
+        100
+      ],
+      "webhookId": "98bee781-d522-4edf-8fed-4b8a6583dc52"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "3dde814b-f97e-4646-9591-15de18fc7f79",
+              "leftValue": "={{ Object.keys($json).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4ce128ba-3fca-4e11-8831-0ae73d1ac02a",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2960,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=http://127.0.0.1:8188/history/{{$json.prompt_id}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "30ad1b63-d387-41ce-a7bc-cc1c19bd842e",
+      "name": "Controllo Stato",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2780,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "7169e46e-6493-44e7-a6ba-9e8e90bd334a",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        3380,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8188/upload/image",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "image",
+              "inputDataFieldName": "image"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2f0bf122-a58d-4c84-a181-7bf9dd0706a9",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code node di debug\nconsole.log(\"=== DEBUG ===\");\nconsole.log(\"Has binary?\", !!$binary.image);\nconsole.log(\"Binary keys:\", Object.keys($binary || {}));\nconsole.log(\"JSON keys:\", Object.keys($json));\n\nif (!$binary.image) {\n  throw new Error(\"⚠️ IMMAGINE BINARIA PERSA QUI!\");\n}\n\nreturn items;  // Passa tutto senza modifiche\n"
+      },
+      "id": "4b6ecacc-b938-45b5-9163-c333539b9266",
+      "name": "Code1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        820,
+        20
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// CODE NODE - ESTRAZIONE IMMAGINI CON DEBUG\n// ============================================\n\n// STEP 1: Verifica cosa abbiamo ricevuto\nconsole.log(\"=== DEBUG: Input ricevuto ===\");\nconsole.log(\"Numero di items:\", items.length);\nconsole.log(\"Struttura completa:\", JSON.stringify(items[0], null, 2));\n\n// STEP 2: Estrai la history (potrebbe essere in diversi posti)\nlet historyData = null;\n\n// Prova percorso 1: items[0].json (risposta diretta)\nif (items[0].json && typeof items[0].json === 'object') {\n  historyData = items[0].json;\n  console.log(\"✓ History trovata in items[0].json\");\n}\n\n// Prova percorso 2: items[0].json.body (se wrappata)\nif (!historyData && items[0].json && items[0].json.body) {\n  historyData = items[0].json.body;\n  console.log(\"✓ History trovata in items[0].json.body\");\n}\n\n// Verifica se la history è vuota\nif (!historyData || Object.keys(historyData).length === 0) {\n  console.error(\"✗ ERRORE: History vuota o non trovata!\");\n  return [{\n    json: {\n      error: \"History non disponibile\",\n      debug_info: {\n        received_keys: Object.keys(items[0].json || {}),\n        full_data: items[0].json\n      }\n    }\n  }];\n}\n\n// STEP 3: Trova il prompt_id\nconst promptId = Object.keys(historyData)[0];\nconsole.log(\"Prompt ID trovato:\", promptId);\n\nif (!promptId || !historyData[promptId]) {\n  console.error(\"✗ ERRORE: Prompt ID non valido!\");\n  return [{\n    json: {\n      error: \"Prompt ID non trovato nella history\",\n      available_keys: Object.keys(historyData)\n    }\n  }];\n}\n\nconst runData = historyData[promptId];\nconsole.log(\"RunData keys:\", Object.keys(runData));\n\n// STEP 4: Estrai le immagini\nlet generatedImages = [];\nlet detectedSessionId = \"session_unknown\";\n\nif (!runData.outputs) {\n  console.error(\"✗ ERRORE: Nessun campo 'outputs' nella history!\");\n  console.log(\"Struttura runData:\", JSON.stringify(runData, null, 2));\n  \n  return [{\n    json: {\n      error: \"Campo 'outputs' mancante\",\n      prompt_id: promptId,\n      available_fields: Object.keys(runData),\n      full_run_data: runData\n    }\n  }];\n}\n\n// Itera su tutti i nodi di output\nconsole.log(\"Nodi di output trovati:\", Object.keys(runData.outputs));\n\nfor (const nodeId in runData.outputs) {\n  const nodeOutput = runData.outputs[nodeId];\n  console.log(`Analizzando nodo ${nodeId}:`, Object.keys(nodeOutput));\n  \n  if (nodeOutput.images && Array.isArray(nodeOutput.images)) {\n    console.log(`  ✓ Trovate ${nodeOutput.images.length} immagini nel nodo ${nodeId}`);\n    \n    nodeOutput.images.forEach((img, index) => {\n      console.log(`    Immagine ${index}:`, img.filename, img.subfolder);\n      \n      // Cattura il session_id dalla prima immagine con subfolder\n      if (detectedSessionId === \"session_unknown\" && img.subfolder) {\n        detectedSessionId = img.subfolder;\n        console.log(\"  ✓ Session ID catturato:\", detectedSessionId);\n      }\n      \n      generatedImages.push({\n        filename: img.filename,\n        subfolder: img.subfolder || \"\",\n        type: img.type || \"output\",\n        node_id: nodeId,\n        url: `http://127.0.0.1:8188/view?filename=${encodeURIComponent(img.filename)}&subfolder=${encodeURIComponent(img.subfolder || \"\")}&type=${img.type || \"output\"}`\n      });\n    });\n  }\n}\n\n// STEP 5: Risultato finale\nconsole.log(\"=== RISULTATO FINALE ===\");\nconsole.log(\"Immagini totali trovate:\", generatedImages.length);\nconsole.log(\"Session ID:\", detectedSessionId);\n\nif (generatedImages.length === 0) {\n  console.error(\"✗ ATTENZIONE: Nessuna immagine trovata negli outputs!\");\n  return [{\n    json: {\n      prompt_id: promptId,\n      status: \"completed_no_images\",\n      images: [],\n      session_id: detectedSessionId,\n      warning: \"ComfyUI ha completato ma non ha generato immagini\",\n      debug_outputs: runData.outputs\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    prompt_id: promptId,\n    status: \"completed\",\n    images: generatedImages,\n    session_id: detectedSessionId,\n    total_images: generatedImages.length\n  }\n}];\n"
+      },
+      "id": "27971240-94fb-4d5c-9003-6f6bfe3eb51a",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3160,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code node di debug\nconsole.log(\"=== DEBUG ===\");\nconsole.log(\"Has binary?\", !!$binary.image);\nconsole.log(\"Binary keys:\", Object.keys($binary || {}));\nconsole.log(\"JSON keys:\", Object.keys($json));\n\nif (!$binary.image) {\n  throw new Error(\"⚠️ IMMAGINE BINARIA PERSA QUI!\");\n}\n\nreturn items;  // Passa tutto senza modifiche\n"
+      },
+      "id": "8a10f665-ba03-4a68-afdd-7d9d956f6dc8",
+      "name": "Code2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code node di debug\nconsole.log(\"=== DEBUG ===\");\nconsole.log(\"Has binary?\", !!$binary.image);\nconsole.log(\"Binary keys:\", Object.keys($binary || {}));\nconsole.log(\"JSON keys:\", Object.keys($json));\n\nif (!$binary.image) {\n  throw new Error(\"⚠️ IMMAGINE BINARIA PERSA QUI!\");\n}\n\nreturn items;  // Passa tutto senza modifiche\n"
+      },
+      "id": "eb273fb7-31e7-4979-923e-8fd91405bb70",
+      "name": "Code3",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code node di debug\nconsole.log(\"=== DEBUG ===\");\nconsole.log(\"Has binary?\", !!$binary.image);\nconsole.log(\"Binary keys:\", Object.keys($binary || {}));\nconsole.log(\"JSON keys:\", Object.keys($json));\n\nif (!$binary.image) {\n  throw new Error(\"⚠️ IMMAGINE BINARIA PERSA QUI!\");\n}\n\nreturn items;  // Passa tutto senza modifiche\n"
+      },
+      "id": "106bef14-069f-49c4-bb31-a647edfecbd4",
+      "name": "Code4",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2380,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-images",
+        "responseMode": "responseNode",
+        "options": {
+          "binaryPropertyName": "image"
+        }
+      },
+      "id": "f01cf8b2-ea47-4cbe-accb-8717b218636d",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        600,
+        20
+      ],
+      "webhookId": "eca16c8e-ca13-42db-893e-f487f1063b09"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Prepare data": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload To ComfyUI": {
+      "main": [
+        [
+          {
+            "node": "Code4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Controllo Stato",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Controllo Stato": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Prepare data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Upload To ComfyUI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code4": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bbf7f202-9731-4d49-90fa-2a8cc90cffaa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "53c66e947bc87bc13c805057c08678684ceea46142439d7ae45eeb2c316a4398"
+  },
+  "id": "YWpmTnOILnF8FAFO",
+  "tags": []
+}
