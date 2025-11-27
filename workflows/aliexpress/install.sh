@@ -279,7 +279,16 @@ curl -fSL "https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/re
   -o "$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json" || echo "❌ Controlla il nome del file Video_Generator.json"
 
 echo "✔️ Workflow n8n salvati in $N8N_WF_DIR"
-echo "   Importali da: n8n → Workflows → Import from File"
+echo "📥 Importo automaticamente i workflow in n8n..."
+
+# n8n usa per default ~/.n8n come cartella utente
+export N8N_USER_FOLDER="/root/.n8n"
+export N8N_DIAGNOSTICS_ENABLED=false
+
+# Importa tutti i JSON presenti nella cartella
+n8n import:workflow --separate --input="$N8N_WF_DIR" || {
+  echo "⚠️ Import automatico fallito. Puoi sempre importarli a mano da: n8n → Workflows → Import from File"
+}
 
 
 ###############################################
