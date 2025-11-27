@@ -245,12 +245,19 @@ fi
 echo "⚙️  Creo comando 'run-aliexpress-n8n'..."
 cat <<'EOF' >/usr/local/bin/run-aliexpress-n8n
 #!/usr/bin/env bash
+
+# Config base per n8n AliExpress
 export N8N_PORT=5678
+export N8N_HOST=0.0.0.0
 export N8N_BASIC_AUTH_ACTIVE=true
 export N8N_BASIC_AUTH_USER=admin
 export N8N_BASIC_AUTH_PASSWORD=havas123
-n8n start --tunnel=false
+export N8N_DIAGNOSTICS_ENABLED=false
+
+# Avvio n8n (senza argomenti invalidi)
+n8n start
 EOF
+
 
 chmod +x /usr/local/bin/run-aliexpress-n8n
 echo "✔️  Script creato: run-aliexpress-n8n"
