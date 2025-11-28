@@ -167,7 +167,7 @@ pip install -q --no-cache-dir gradio requests
 echo "⚙️ Creo comando 'run-aliexpress-frontend'..."
 cat <<'EOF' >/usr/local/bin/run-aliexpress-frontend
 #!/usr/bin/env bash
-FRONTEND_DIR="/tmp/havas_frontends/aliexpress"
+FRONTEND_DIR="/tmp/comfyui/frontends/aliexpress"
 LOG_FILE="/tmp/aliexpress-frontend.log"
 
 cd "$FRONTEND_DIR" || {
