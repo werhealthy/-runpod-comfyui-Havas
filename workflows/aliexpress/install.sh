@@ -151,9 +151,9 @@ cd /tmp
 
 echo " Setup frontend AliExpress..."
 
-FRONTEND_ROOT="/tmp/havas_frontends"
-FRONTEND_DIR="$FRONTEND_ROOT/aliexpress"
+FRONTEND_DIR="/tmp/comfyui/frontends/aliexpress"  # ← CAMBIA QUI
 mkdir -p "$FRONTEND_DIR"
+
 
 # Scarica l'app Gradio specifica di AliExpress
 APP_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress/app.py"
@@ -268,7 +268,7 @@ echo ""
 
 echo " Scarico workflow n8n AliExpress..."
 
-N8N_WF_DIR="/tmp/n8n_workflows/aliexpress"
+N8N_WF_DIR="/tmp/comfyui/n8n_workflows/aliexpress"
 mkdir -p "$N8N_WF_DIR"
 
 curl -fSL "https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress/_ALIEXPRESS__01___Image_Generator.json" \
