@@ -239,21 +239,52 @@ chmod +x /usr/local/bin/run-aliexpress-n8n
 echo "✔️ Script creato: run-aliexpress-n8n"
 
 ###############################################
-# 7. WORKFLOW N8N
+# 7. WORKFLOW N8N CON URL DINAMICO
 ###############################################
 
-echo "📥 Scarico workflow n8n AliExpress..."
+echo "📥 Scarico e configuro workflow n8n AliExpress..."
 
 N8N_WF_DIR="$COMFY_DIR/n8n_workflows/aliexpress"
 mkdir -p "$N8N_WF_DIR"
 
+# 🔍 RILEVA AUTOMATICAMENTE L'URL DI COMFYUI
+if [ -z "$RUNPOD_POD_HOSTNAME" ]; then
+  # Se non siamo su RunPod, usa localhost
+  COMFYUI_URL="http://127.0.0.1:8188"
+  echo "⚠️ Non rilevato RunPod, uso localhost"
+else
+  # Siamo su RunPod, costruisci l'URL
+  COMFYUI_URL="https://${RUNPOD_POD_ID}-8188.proxy.runpod.net"
+  echo "✅ URL ComfyUI rilevato: $COMFYUI_URL"
+fi
+
+# Scarica il workflow
 curl -fSL "https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress/_ALIEXPRESS__01___Image_Generator.json" \
   -o "$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json" || true
 
+# 🔧 SOSTITUISCI TUTTI GLI URL NEL WORKFLOW
+if [ -f "$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json" ]; then
+  echo "🔧 Aggiorno URL nel workflow n8n..."
+  
+  # Sostituisci http://127.0.0.1:8188 con l'URL rilevato
+  sed -i "s|http://127.0.0.1:8188|${COMFYUI_URL}|g" "$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json"
+  
+  # Sostituisci anche eventuali placeholder
+  sed -i "s|{{ \$env.COMFYUI_URL }}|${COMFYUI_URL}|g" "$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json"
+  
+  echo "✅ URL aggiornato a: $COMFYUI_URL"
+fi
+
+# Secondo workflow
 curl -fSL "https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress/_ALIEXPRESS__02___Video_Generator.json" \
   -o "$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json" || true
 
-echo "✔️ Workflow n8n salvati in $N8N_WF_DIR"
+if [ -f "$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json" ]; then
+  sed -i "s|http://127.0.0.1:8188|${COMFYUI_URL}|g" "$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json"
+  sed -i "s|{{ \$env.COMFYUI_URL }}|${COMFYUI_URL}|g" "$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json"
+fi
+
+echo "✔️ Workflow n8n salvati e configurati in $N8N_WF_DIR"
 
 ###############################################
 # 8. AVVIO AUTOMATICO N8N
