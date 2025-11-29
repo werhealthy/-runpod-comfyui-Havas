@@ -239,69 +239,71 @@ chmod +x /usr/local/bin/run-aliexpress-n8n
 echo "✔️ Script creato: run-aliexpress-n8n"
 
 ###############################################
-# 7. WORKFLOW N8N CON URL DINAMICO
+# 7. WORKFLOW N8N - DOWNLOAD E CONFIG
 ###############################################
 
-echo "📥 Scarico e configuro workflow n8n AliExpress..."
+echo "📥 Scarico workflow n8n AliExpress..."
 
 N8N_WF_DIR="$COMFY_DIR/n8n_workflows/aliexpress"
 mkdir -p "$N8N_WF_DIR"
 
-# 🔍 RILEVA AUTOMATICAMENTE L'URL DI COMFYUI
-if [ -z "$RUNPOD_POD_HOSTNAME" ]; then
-  # Se non siamo su RunPod, usa localhost
-  COMFYUI_URL="http://127.0.0.1:8188"
-  echo "⚠️ Non rilevato RunPod, uso localhost"
-else
-  # Siamo su RunPod, costruisci l'URL
+# 🔍 RILEVA URL COMFYUI
+if [ -n "$RUNPOD_POD_ID" ]; then
   COMFYUI_URL="https://${RUNPOD_POD_ID}-8188.proxy.runpod.net"
   echo "✅ URL ComfyUI rilevato: $COMFYUI_URL"
+else
+  COMFYUI_URL="http://127.0.0.1:8188"
+  echo "⚠️ URL ComfyUI: localhost (non RunPod)"
 fi
 
-# Scarica il workflow
+# Scarica workflow 1
 curl -fSL "https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress/_ALIEXPRESS__01___Image_Generator.json" \
   -o "$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json" || true
 
-# 🔧 SOSTITUISCI TUTTI GLI URL NEL WORKFLOW
-if [ -f "$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json" ]; then
-  echo "🔧 Aggiorno URL nel workflow n8n..."
-  
-  # Sostituisci http://127.0.0.1:8188 con l'URL rilevato
-  sed -i "s|http://127.0.0.1:8188|${COMFYUI_URL}|g" "$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json"
-  
-  # Sostituisci anche eventuali placeholder
-  sed -i "s|{{ \$env.COMFYUI_URL }}|${COMFYUI_URL}|g" "$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json"
-  
-  echo "✅ URL aggiornato a: $COMFYUI_URL"
-fi
-
-# Secondo workflow
+# Scarica workflow 2
 curl -fSL "https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress/_ALIEXPRESS__02___Video_Generator.json" \
   -o "$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json" || true
 
+# 🔧 SOSTITUISCI URL NEI WORKFLOW
+for file in "$N8N_WF_DIR"/*.json; do
+  if [ -f "$file" ]; then
+    echo "🔧 Aggiorno URL in: $(basename "$file")"
+    sed -i "s|http://127.0.0.1:8188|${COMFYUI_URL}|g" "$file"
+    sed -i "s|{{ \$env.COMFYUI_URL }}|${COMFYUI_URL}|g" "$file"
+  fi
+done
+
+echo "✔️ Workflow n8n salvati in $N8N_WF_DIR"
+
+###############################################
+# 8. COPIA WORKFLOW NELLA CARTELLA n8n
+###############################################
+
+echo "📂 Copio workflow nella cartella n8n..."
+
+# Crea la cartella workflows di n8n
+N8N_USER_FOLDER="/root/.n8n"
+mkdir -p "$N8N_USER_FOLDER/workflows"
+
+# Copia i workflow direttamente nella cartella di n8n
+if [ -f "$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json" ]; then
+  cp "$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json" "$N8N_USER_FOLDER/workflows/"
+  echo "✅ Copiato: _ALIEXPRESS__01___Image_Generator.json"
+fi
+
 if [ -f "$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json" ]; then
-  sed -i "s|http://127.0.0.1:8188|${COMFYUI_URL}|g" "$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json"
-  sed -i "s|{{ \$env.COMFYUI_URL }}|${COMFYUI_URL}|g" "$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json"
-fi
-
-echo "✔️ Workflow n8n salvati e configurati in $N8N_WF_DIR"
-
-###############################################
-# 8. AVVIO AUTOMATICO N8N
-###############################################
-
-echo "🚀 Avvio n8n per AliExpress..."
-
-if [ -f /usr/local/bin/run-aliexpress-n8n ]; then
-    nohup /usr/local/bin/run-aliexpress-n8n >/tmp/n8n.log 2>&1 &
-    echo "✔️ n8n avviato in background sulla porta 5678"
-    echo "📍 Log: /tmp/n8n.log"
-else
-    echo "❌ run-aliexpress-n8n non trovato!"
+  cp "$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json" "$N8N_USER_FOLDER/workflows/"
+  echo "✅ Copiato: _ALIEXPRESS__02___Video_Generator.json"
 fi
 
 ###############################################
-# 9. MESSAGGIO FINALE
+# 9. AVVIO AUTOMATICO N8N
+###############################################
+
+echo "🚀 Avvio n8n per
+
+###############################################
+# 10. MESSAGGIO FINALE
 ###############################################
 
 echo "==============================================="
