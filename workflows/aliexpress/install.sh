@@ -15,24 +15,20 @@ mkdir -p \
   "$MODEL_DIR/text_encoders" \
   "$MODEL_DIR/vae" \
   "$MODEL_DIR/loras" \
+  "$MODEL_DIR/checkpoints" \
   "$CUSTOM_NODES_DIR" \
   "$WORKFLOWS_DIR"
   
 ###############################################
-# 0. SISTEMA E DIPENDENZE BASE (AGGIUNTO)
+# 0. SISTEMA E DIPENDENZE BASE
 ###############################################
 echo "🚀 Installazione dipendenze di sistema..."
 
-# Aggiorna apt e installa i font mancanti (FIX PER COMFYROLL) e ffmpeg
-# Questo risolve l'errore "FileNotFoundError: /usr/share/fonts/truetype"
 apt-get update && apt-get install -y fonts-dejavu-core ffmpeg libgl1-mesa-glx
 
 echo "🚀 Installazione tool Python..."
-# Installa il motore per download veloce (FIX PER RMBG)
-# Questo risolve l'errore "hf_transfer package is not available"
 pip install hf_transfer huggingface_hub
 
-# Attiva il download veloce
 export HF_HUB_ENABLE_HF_TRANSFER=1
 
 ###############################################
@@ -48,36 +44,34 @@ echo "✔️ Workflow copiato in $WORKFLOWS_DIR/aliexpress.json"
 
 
 ###############################################
-# 2. INSTALLAZIONE MODELLI (tuo codice originale)
+# 2. INSTALLAZIONE MODELLI
 ###############################################
 
 echo "📥 Installazione modelli..."
 
 wget -c --show-progress "https://huggingface.co/aidiffuser/Qwen-Image-Edit-2509/resolve/main/Qwen-Image-Edit-2509_fp8_e4m3fn.safetensors" \
-  -O $MODEL_DIR/diffusion_models/Qwen-Image-Edit-2509_fp8_e4m3fn.safetensors
+  -O "$MODEL_DIR/diffusion_models/Qwen-Image-Edit-2509_fp8_e4m3fn.safetensors"
 
 wget -c --show-progress "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors" \
-  -O $MODEL_DIR/text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors
+  -O "$MODEL_DIR/text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors"
 
 wget -c --show-progress "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/vae/qwen_image_vae.safetensors" \
-  -O $MODEL_DIR/vae/qwen_image_vae.safetensors
+  -O "$MODEL_DIR/vae/qwen_image_vae.safetensors"
 
 wget -c --show-progress "https://huggingface.co/lightx2v/Qwen-Image-Lightning/resolve/main/Qwen-Image-Lightning-8steps-V1.1.safetensors" \
-  -O $MODEL_DIR/loras/Qwen-Image-Lightning-8steps-V1.1.safetensors
+  -O "$MODEL_DIR/loras/Qwen-Image-Lightning-8steps-V1.1.safetensors"
 
 wget -c --show-progress "https://huggingface.co/dx8152/Qwen-Image-Edit-2509-White_to_Scene/resolve/main/%E7%99%BD%E5%BA%95%E5%9B%BE%E8%BD%AC%E5%9C%BA%E6%99%AF.safetensors" \
-  -O $MODEL_DIR/loras/white_to_scene.safetensors
+  -O "$MODEL_DIR/loras/white_to_scene.safetensors"
   
-# --- MODELLI PER SUPIR UPSCALER ---
-# Nota: Questi vanno in 'checkpoints' standard
 wget -c --show-progress "https://huggingface.co/Kijai/SUPIR_pruned/resolve/main/SUPIR-v0F_fp16.safetensors?download=true" \
-  -O $MODEL_DIR/checkpoints/SUPIR-v0F_fp16.safetensors
+  -O "$MODEL_DIR/checkpoints/SUPIR-v0F_fp16.safetensors"
 
 wget -c --show-progress "https://civitai.com/api/download/models/357609" \
-  -O $MODEL_DIR/checkpoints/juggernautXL_v9Rdphoto2Lightning.safetensors
+  -O "$MODEL_DIR/checkpoints/juggernautXL_v9Rdphoto2Lightning.safetensors"
 
 ###############################################
-# 3. INSTALLAZIONE CUSTOM NODES (robusto e universale)
+# 3. INSTALLAZIONE CUSTOM NODES
 ###############################################
 
 echo "🧩 Installazione Custom Nodes..."
@@ -98,7 +92,6 @@ for entry in "${CUSTOM_NODES[@]}"; do
   NAME=$(echo "$entry" | cut -d'|' -f1)
   REPO=$(echo "$entry" | cut -d'|' -f2)
   DEST="$CUSTOM_NODES_DIR/$NAME"
-  # Pulizia profonda e rimozione eventuale vecchia repo con nome diverso/simile
   rm -rf "$DEST"
   echo "📥 Clono da zero $NAME"
   git clone --depth=1 "$REPO" "$DEST"
@@ -106,63 +99,53 @@ done
 
 echo "📦 Configurazione finale dei Nodi..."
 
-# 1. Installa Requirements e Script di Setup (Solo se esistono)
-for folder in /tmp/comfyui/custom_nodes/*; do
+for folder in "$CUSTOM_NODES_DIR"/*; do
   if [ -f "$folder/requirements.txt" ]; then
-     pip install -q --no-cache-dir -r "$folder/requirements.txt"
+     pip install -q --no-cache-dir -r "$folder/requirements.txt" || true
   fi
   
-  # Questo controllo [ -f ] impedisce allo script di bloccarsi se install.py manca
   if [ -f "$folder/install.py" ]; then
      echo "⚙️ Configuro nodo: $(basename "$folder")"
      cd "$folder"
-     python install.py
+     python install.py || true
      cd ..
   fi
 done
 
-# 2. FIX SPECIFICO PER RGTHREE (Copia Manuale)
-# Dato che install.py non esiste più, copiamo i file grafici a mano
-if [ -d "/tmp/comfyui/custom_nodes/rgthree-comfy/web" ]; then
+if [ -d "$CUSTOM_NODES_DIR/rgthree-comfy/web" ]; then
     echo "⚡ FIX: Copio manualmente interfaccia rgthree..."
-    mkdir -p /tmp/comfyui/web/extensions/rgthree
-    cp -rf /tmp/comfyui/custom_nodes/rgthree-comfy/web/* /tmp/comfyui/web/extensions/rgthree/
+    mkdir -p "$COMFY_DIR/web/extensions/rgthree"
+    cp -rf "$CUSTOM_NODES_DIR/rgthree-comfy/web"/* "$COMFY_DIR/web/extensions/rgthree/"
 fi
 
-# 3. RIPARAZIONE VIA MANAGER (Cruciale per KJNodes e RMBG)
-if [ -d "/tmp/comfyui/custom_nodes/ComfyUI-Manager" ]; then
+if [ -d "$CUSTOM_NODES_DIR/ComfyUI-Manager" ]; then
     echo "🔧 Eseguo riparazione dipendenze Manager..."
-    cd /tmp/comfyui/custom_nodes/ComfyUI-Manager
-    pip install -q -r requirements.txt
-    python cm-cli.py restore-dependencies
+    cd "$CUSTOM_NODES_DIR/ComfyUI-Manager"
+    pip install -q -r requirements.txt || true
+    python cm-cli.py restore-dependencies || true
 fi
 
-# 4. PULIZIA CACHE
 echo "🧹 Pulizia cache finale..."
-rm -rf /tmp/comfyui/user/default/node_cache
-rm -rf /tmp/comfyui/__pycache__
+rm -rf "$COMFY_DIR/user/default/node_cache"
+rm -rf "$COMFY_DIR/__pycache__"
 
-# Torna alla cartella temporanea per proseguire con il frontend
 cd /tmp
 
 ###############################################
 # 4. FRONTEND ALIEXPRESS (Gradio)
 ###############################################
 
-echo " Setup frontend AliExpress..."
+echo "🔧 Setup frontend AliExpress..."
 
-FRONTEND_DIR="/tmp/comfyui/frontends/aliexpress"  # ← CAMBIA QUI
+FRONTEND_DIR="$COMFY_DIR/frontends/aliexpress"
 mkdir -p "$FRONTEND_DIR"
 
-
-# Scarica l'app Gradio specifica di AliExpress
 APP_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress/app.py"
-echo " Scarico app.py AliExpress..."
-curl -fSL "$APP_URL" -o "$FRONTEND_DIR/app.py"
+echo "📥 Scarico app.py AliExpress..."
+curl -fSL "$APP_URL" -o "$FRONTEND_DIR/app.py" || echo "⚠️ Errore download app.py"
 
-# Requirements per il frontend (Gradio + richieste HTTP)
-echo " Installo requirements frontend AliExpress..."
-pip install -q --no-cache-dir gradio requests
+echo "📦 Installo requirements frontend AliExpress..."
+pip install -q --no-cache-dir gradio requests || true
 
 echo "⚙️ Creo comando 'run-aliexpress-frontend'..."
 cat <<'EOF' >/usr/local/bin/run-aliexpress-frontend
@@ -182,71 +165,66 @@ PID=$!
 sleep 5
 if ps -p "$PID" > /dev/null 2>&1; then
   echo "✨ Frontend AliExpress avviato (PID $PID) su http://0.0.0.0:7860"
-  echo " Log: $LOG_FILE"
+  echo "📍 Log: $LOG_FILE"
 else
   echo "❌ Frontend AliExpress non è rimasto in esecuzione."
-  echo " Ultime righe log:"
-  tail -20 "$LOG_FILE" || echo " Nessun log trovato."
+  echo "📋 Ultime righe log:"
+  tail -20 "$LOG_FILE" || echo "❌ Nessun log trovato."
 fi
 EOF
 
 chmod +x /usr/local/bin/run-aliexpress-frontend
 
-echo " Avvio frontend AliExpress..."
-run-aliexpress-frontend
-###############################################
-# 5. RIAVVIO AUTOMATICO COMFYUI (Auto-Restart)
-###############################################
-echo "🔄 Riavvio forzato di ComfyUI per applicare le modifiche..."
+echo "🚀 Avvio frontend AliExpress..."
+/usr/local/bin/run-aliexpress-frontend
 
-# 1. Uccide il processo ComfyUI attuale (se esiste)
+###############################################
+# 5. RIAVVIO AUTOMATICO COMFYUI
+###############################################
+echo "🔄 Riavvio forzato di ComfyUI..."
+
 pkill -f "python main.py" || true
 pkill -f "python3 main.py" || true
 
 echo "⏳ Attendo chiusura processi..."
 sleep 3
 
-# 2. Rilancia ComfyUI in background con i tuoi parametri corretti
 echo "🚀 Avvio ComfyUI Pulito..."
-cd /tmp/comfyui
+cd "$COMFY_DIR"
 
-# Usa nohup per mantenerlo vivo anche se chiudi il terminale
 nohup python main.py \
     --listen 0.0.0.0 \
     --port 8188 \
     --enable-cors-header \
     --force-fp16 \
     --preview-method auto \
-    > /tmp/comfyui/comfyui.log 2>&1 &
+    > "$COMFY_DIR/comfyui.log" 2>&1 &
+
 ###############################################
-# 6. INSTALLAZIONE N8N (ORCHESTRATORE)
+# 6. INSTALLAZIONE N8N
 ###############################################
 
-echo "📦 Installazione n8n (orchestratore)..."
+echo "📦 Installazione n8n..."
 
-# 4.1 Installa Node 18 se assente o troppo vecchio
 if ! command -v node &> /dev/null || ! node -e 'process.exit(process.versions.node.split(".")[0] >= 18 ? 0 : 1)'; then
-  echo "⚠️  Node.js assente o troppo vecchio. Installo Node 18..."
+  echo "⚠️ Node.js assente o troppo vecchio. Installo Node 18..."
   curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
   apt-get install -y nodejs
 fi
 
-echo "✔️  Versione Node in uso: $(node -v)"
+echo "✔️ Versione Node in uso: $(node -v)"
 
-# 4.2 Installa n8n versione compatibile con Node 18
 if ! command -v n8n &> /dev/null; then
-  echo "➡️  Installo n8n (versione compatibile con Node 18)..."
-  npm install -g n8n@1.39.1
+  echo "➡️ Installo n8n..."
+  npm install -g n8n@1.39.1 || true
 else
-  echo "✔️  n8n già installato."
+  echo "✔️ n8n già installato."
 fi
 
-# 4.3 Crea script di avvio per n8n
-echo "⚙️  Creo comando 'run-aliexpress-n8n'..."
+echo "⚙️ Creo comando 'run-aliexpress-n8n'..."
 cat <<'EOF' >/usr/local/bin/run-aliexpress-n8n
 #!/usr/bin/env bash
 
-# Config base per n8n AliExpress
 export N8N_PORT=5678
 export N8N_HOST=0.0.0.0
 export N8N_BASIC_AUTH_ACTIVE=true
@@ -254,56 +232,41 @@ export N8N_BASIC_AUTH_USER=admin
 export N8N_BASIC_AUTH_PASSWORD=havas123
 export N8N_DIAGNOSTICS_ENABLED=false
 
-# Avvio n8n (senza argomenti invalidi)
 n8n start
 EOF
 
-
 chmod +x /usr/local/bin/run-aliexpress-n8n
-echo "✔️  Script creato: run-aliexpress-n8n"
-echo ""
+echo "✔️ Script creato: run-aliexpress-n8n"
+
 ###############################################
-# 7. WORKFLOW N8N (solo download file)
+# 7. WORKFLOW N8N
 ###############################################
 
-echo " Scarico workflow n8n AliExpress..."
+echo "📥 Scarico workflow n8n AliExpress..."
 
-N8N_WF_DIR="/tmp/comfyui/n8n_workflows/aliexpress"
+N8N_WF_DIR="$COMFY_DIR/n8n_workflows/aliexpress"
 mkdir -p "$N8N_WF_DIR"
 
 curl -fSL "https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress/_ALIEXPRESS__01___Image_Generator.json" \
-  -o "$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json"
+  -o "$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json" || true
 
-# ⚠️ CONTROLLA IL NOME ESATTO DEL SECONDO FILE NEL REPO
 curl -fSL "https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress/_ALIEXPRESS__02___Video_Generator.json" \
-  -o "$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json" || echo "❌ Controlla il nome del file Video_Generator.json"
+  -o "$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json" || true
 
 echo "✔️ Workflow n8n salvati in $N8N_WF_DIR"
-echo "📥 Importo automaticamente i workflow in n8n..."
-
-# n8n usa per default ~/.n8n come cartella utente
-export N8N_USER_FOLDER="/root/.n8n"
-export N8N_DIAGNOSTICS_ENABLED=false
-
-# Importa tutti i JSON presenti nella cartella
-n8n import:workflow --separate --input="$N8N_WF_DIR" || {
-  echo "⚠️ Import automatico fallito. Puoi sempre importarli a mano da: n8n → Workflows → Import from File"
-}
-
 
 ###############################################
-# 8. AVVIO AUTOMATICO N8N DOPO INSTALLAZIONE
+# 8. AVVIO AUTOMATICO N8N
 ###############################################
 
 echo "🚀 Avvio n8n per AliExpress..."
 
 if [ -f /usr/local/bin/run-aliexpress-n8n ]; then
-    # Avvia n8n in background
     nohup /usr/local/bin/run-aliexpress-n8n >/tmp/n8n.log 2>&1 &
-    echo "✔️  n8n avviato in background sulla porta 5678"
+    echo "✔️ n8n avviato in background sulla porta 5678"
     echo "📍 Log: /tmp/n8n.log"
 else
-    echo "❌ run-aliexpress-n8n non trovato! Possibile errore installazione."
+    echo "❌ run-aliexpress-n8n non trovato!"
 fi
 
 ###############################################
@@ -316,7 +279,7 @@ echo "  ComfyUI è attivo. Attendi 10-20 secondi."
 echo ""
 echo "  👉 Workflow AliExpress installato!"
 echo "     • Workflow JSON:  $WORKFLOWS_DIR/aliexpress.json"
-echo "     • Script video:   /usr/local/bin/aliexpress-video.sh"
+echo "     • Frontend:       http://0.0.0.0:7860"
 echo ""
 echo "  👉 Orchestratore (n8n)"
 echo "     • Avvia n8n: run-aliexpress-n8n"
@@ -324,6 +287,8 @@ echo "     • Porta:     5678"
 echo "     • Login:     admin / havas123"
 echo ""
 echo "  👉 Debug"
-echo "     • Log ComfyUI: tail -f /tmp/comfyui/comfyui.log"
+echo "     • Log ComfyUI: tail -f $COMFY_DIR/comfyui.log"
+echo "     • Log Frontend: tail -f /tmp/aliexpress-frontend.log"
+echo "     • Log n8n: tail -f /tmp/n8n.log"
 echo ""
 echo "==============================================="
