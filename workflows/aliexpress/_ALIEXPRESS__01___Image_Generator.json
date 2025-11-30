@@ -20,10 +20,10 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{\n  {\n    \"prompt\": {\n      \"1\": {\n        \"inputs\": {\n          \"prompt\": $json.prompt,\n          \"target_size\": 1024,\n          \"target_vl_size\": 384,\n          \"upscale_method\": \"lanczos\",\n          \"crop_method\": \"center\",\n          \"instruction\": \"Describe the key features of the input image (color, shape, size, texture, objects, background), then explain how the user's text instruction should alter or modify the image. Generate a new image that meets the user's requirements while maintaining consistency with the original input where appropriate.\",\n          \"clip\": [\"2\", 0],\n          \"vae\": [\"3\", 0],\n          \"vl_resize_image1\": [\"47\", 0]\n        },\n        \"class_type\": \"TextEncodeQwenImageEditPlusAdvance_lrzjason\",\n        \"_meta\": {\n          \"title\": \"TextEncodeQwenImageEditPlusAdvance lrzjason\"\n        }\n      },\n      \"2\": {\n        \"inputs\": {\n          \"clip_name\": \"qwen_2.5_vl_7b_fp8_scaled.safetensors\",\n          \"type\": \"qwen_image\",\n          \"device\": \"default\"\n        },\n        \"class_type\": \"CLIPLoader\",\n        \"_meta\": {\n          \"title\": \"Load CLIP\"\n        }\n      },\n      \"3\": {\n        \"inputs\": {\n          \"vae_name\": \"qwen_image_vae.safetensors\"\n        },\n        \"class_type\": \"VAELoader\",\n        \"_meta\": {\n          \"title\": \"Load VAE\"\n        }\n      },\n      \"6\": {\n        \"inputs\": {\n          \"seed\": Math.floor(Math.random() * 1000000000000000),\n          \"steps\": 8,\n          \"cfg\": 1,\n          \"sampler_name\": \"er_sde\",\n          \"scheduler\": \"simple\",\n          \"denoise\": 1,\n          \"model\": [\"35\", 0],\n          \"positive\": [\"1\", 0],\n          \"negative\": [\"7\", 0],\n          \"latent_image\": [\"1\", 1]\n        },\n        \"class_type\": \"KSampler\",\n        \"_meta\": {\n          \"title\": \"KSampler\"\n        }\n      },\n      \"7\": {\n        \"inputs\": {\n          \"conditioning\": [\"1\", 0]\n        },\n        \"class_type\": \"ConditioningZeroOut\",\n        \"_meta\": {\n          \"title\": \"ConditioningZeroOut\"\n        }\n      },\n      \"8\": {\n        \"inputs\": {\n          \"unet_name\": \"Qwen-Image-Edit-2509_fp8_e4m3fn.safetensors\",\n          \"weight_dtype\": \"fp8_e4m3fn\"\n        },\n        \"class_type\": \"UNETLoader\",\n        \"_meta\": {\n          \"title\": \"Load Diffusion Model\"\n        }\n      },\n      \"9\": {\n        \"inputs\": {\n          \"samples\": [\"6\", 0],\n          \"vae\": [\"3\", 0]\n        },\n        \"class_type\": \"VAEDecode\",\n        \"_meta\": {\n          \"title\": \"VAE Decode\"\n        }\n      },\n      \"15\": {\n        \"inputs\": {\n          \"lora_name\": \"Qwen-Image-Lightning-8steps-V1.1.safetensors\",\n          \"strength_model\": 1.0000000000000002,\n          \"model\": [\"8\", 0]\n        },\n        \"class_type\": \"LoraLoaderModelOnly\",\n        \"_meta\": {\n          \"title\": \"LoraLoaderModelOnly\"\n        }\n      },\n      \"17\": {\n        \"inputs\": {\n          \"model_name\": \"qwen\\\\Qwen-Image-Edit-2509-Q4_0.gguf\",\n          \"extra_model_name\": \"none\",\n          \"dequant_dtype\": \"default\",\n          \"patch_dtype\": \"default\",\n          \"patch_on_device\": false,\n          \"enable_fp16_accumulation\": false,\n          \"attention_override\": \"none\"\n        },\n        \"class_type\": \"GGUFLoaderKJ\",\n        \"_meta\": {\n          \"title\": \"GGUFLoaderKJ\"\n        }\n      },\n      \"29\": {\n        \"inputs\": {\n          \"lora_name\": \"white_to_scene.safetensors\",\n          \"strength_model\": 1,\n          \"model\": [\"15\", 0]\n        },\n        \"class_type\": \"LoraLoaderModelOnly\",\n        \"_meta\": {\n          \"title\": \"LoraLoaderModelOnly\"\n        }\n      },\n      \"34\": {\n        \"inputs\": {\n          \"shift\": 3,\n          \"model\": [\"29\", 0]\n        },\n        \"class_type\": \"ModelSamplingAuraFlow\",\n        \"_meta\": {\n          \"title\": \"ModelSamplingAuraFlow\"\n        }\n      },\n      \"35\": {\n        \"inputs\": {\n          \"strength\": 1,\n          \"model\": [\"34\", 0]\n        },\n        \"class_type\": \"CFGNorm\",\n        \"_meta\": {\n          \"title\": \"CFGNorm\"\n        }\n      },\n      \"45\": {\n        \"inputs\": {\n          \"rgthree_comparer\": {\n            \"images\": [\n              {\n                \"name\": \"A\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_eigkm_00003_.png&type=temp&subfolder=&rand=0.6273124169981674\"\n              },\n              {\n                \"name\": \"B\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_eigkm_00004_.png&type=temp&subfolder=&rand=0.3841891419252026\"\n              }\n            ]\n          },\n          \"image_a\": [\"49\", 0],\n          \"image_b\": [\"9\", 0]\n        },\n        \"class_type\": \"Image Comparer (rgthree)\",\n        \"_meta\": {\n          \"title\": \"Image Comparer (rgthree) base model\"\n        }\n      },\n      \"47\": {\n        \"inputs\": {\n          \"model\": \"RMBG-2.0\",\n          \"sensitivity\": 1,\n          \"process_res\": 1024,\n          \"mask_blur\": 0,\n          \"mask_offset\": 0,\n          \"invert_output\": false,\n          \"refine_foreground\": false,\n          \"background\": \"Color\",\n          \"background_color\": \"#222222\",\n          \"image\": [\"49\", 0]\n        },\n        \"class_type\": \"RMBG\",\n        \"_meta\": {\n          \"title\": \"Remove Background (RMBG)\"\n        }\n      },\n      \"49\": {\n        \"inputs\": {\n          \"image\": $json.image_filename\n        },\n        \"class_type\": \"LoadImage\",\n        \"_meta\": {\n          \"title\": \"Load Image\"\n        }\n      },\n      \"54\": {\n        \"inputs\": {\n          \"filename_prefix\": \"Aliexpress_Test\",\n          \"images\": [\"9\", 0]\n        },\n        \"class_type\": \"SaveImage\",\n        \"_meta\": {\n          \"title\": \"Save Image\"\n        }\n      },\n      \"55\": {\n        \"inputs\": {\n          \"text\": \"白底图转场景\"\n        },\n        \"class_type\": \"CR Text\",\n        \"_meta\": {\n          \"title\": \"🔤 CR Text Trigger word,do not change\"\n        }\n      },\n      \"56\": {\n        \"inputs\": {\n          \"delimiter\": \", \",\n          \"clean_whitespace\": \"true\",\n          \"text_a\": [\"55\", 0],\n          \"text_b\": [\"57\", 0]\n        },\n        \"class_type\": \"Text Concatenate\",\n        \"_meta\": {\n          \"title\": \"Text Concatenate\"\n        }\n      },\n      \"57\": {\n        \"inputs\": {\n          \"text\": $json.prompt\n        },\n        \"class_type\": \"CR Text\",\n        \"_meta\": {\n          \"title\": \"🔤 CR Text additional prompt\"\n        }\n      },\n      \"59\": {\n        \"inputs\": {\n          \"images\": [\"47\", 0]\n        },\n        \"class_type\": \"PreviewImage\",\n        \"_meta\": {\n          \"title\": \"Preview Image\"\n        }\n      },\n      \"63\": {\n        \"inputs\": {\n          \"seed\": Math.floor(Math.random() * 1000000000000000),\n          \"steps\": 8,\n          \"cfg\": 1,\n          \"sampler_name\": \"er_sde\",\n          \"scheduler\": \"simple\",\n          \"denoise\": 1,\n          \"model\": [\"35\", 0],\n          \"positive\": [\"1\", 0],\n          \"negative\": [\"73\", 0],\n          \"latent_image\": [\"1\", 1]\n        },\n        \"class_type\": \"KSampler\",\n        \"_meta\": {\n          \"title\": \"KSampler\"\n        }\n      },\n      \"64\": {\n        \"inputs\": {\n          \"samples\": [\"63\", 0],\n          \"vae\": [\"3\", 0]\n        },\n        \"class_type\": \"VAEDecode\",\n        \"_meta\": {\n          \"title\": \"VAE Decode\"\n        }\n      },\n      \"65\": {\n        \"inputs\": {\n          \"filename_prefix\": \"Aliexpress_Test\",\n          \"images\": [\"64\", 0]\n        },\n        \"class_type\": \"SaveImage\",\n        \"_meta\": {\n          \"title\": \"Save Image\"\n        }\n      },\n      \"66\": {\n        \"inputs\": {\n          \"rgthree_comparer\": {\n            \"images\": [\n              {\n                \"name\": \"A\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_ygzph_00003_.png&type=temp&subfolder=&rand=0.546581772031995\"\n              },\n              {\n                \"name\": \"B\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_ygzph_00004_.png&type=temp&subfolder=&rand=0.8702932293516649\"\n              }\n            ]\n          },\n          \"image_a\": [\"49\", 0],\n          \"image_b\": [\"64\", 0]\n        },\n        \"class_type\": \"Image Comparer (rgthree)\",\n        \"_meta\": {\n          \"title\": \"Image Comparer (rgthree) base model\"\n        }\n      },\n      \"67\": {\n        \"inputs\": {\n          \"seed\": Math.floor(Math.random() * 1000000000000000),\n          \"steps\": 8,\n          \"cfg\": 1,\n          \"sampler_name\": \"er_sde\",\n          \"scheduler\": \"simple\",\n          \"denoise\": 1,\n          \"model\": [\"35\", 0],\n          \"positive\": [\"1\", 0],\n          \"negative\": [\"74\", 0],\n          \"latent_image\": [\"1\", 1]\n        },\n        \"class_type\": \"KSampler\",\n        \"_meta\": {\n          \"title\": \"KSampler\"\n        }\n      },\n      \"68\": {\n        \"inputs\": {\n          \"samples\": [\"67\", 0],\n          \"vae\": [\"3\", 0]\n        },\n        \"class_type\": \"VAEDecode\",\n        \"_meta\": {\n          \"title\": \"VAE Decode\"\n        }\n      },\n      \"69\": {\n        \"inputs\": {\n          \"filename_prefix\": \"Aliexpress_Test\",\n          \"images\": [\"68\", 0]\n        },\n        \"class_type\": \"SaveImage\",\n        \"_meta\": {\n          \"title\": \"Save Image\"\n        }\n      },\n      \"70\": {\n        \"inputs\": {\n          \"rgthree_comparer\": {\n            \"images\": [\n              {\n                \"name\": \"A\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_klxti_00003_.png&type=temp&subfolder=&rand=0.8258536168316297\"\n              },\n              {\n                \"name\": \"B\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_klxti_00004_.png&type=temp&subfolder=&rand=0.9515632332584741\"\n              }\n            ]\n          },\n          \"image_a\": [\"49\", 0],\n          \"image_b\": [\"68\", 0]\n        },\n        \"class_type\": \"Image Comparer (rgthree)\",\n        \"_meta\": {\n          \"title\": \"Image Comparer (rgthree) base model\"\n        }\n      },\n      \"73\": {\n        \"inputs\": {\n          \"conditioning\": [\"1\", 0]\n        },\n        \"class_type\": \"ConditioningZeroOut\",\n        \"_meta\": {\n          \"title\": \"ConditioningZeroOut\"\n        }\n      },\n      \"74\": {\n        \"inputs\": {\n          \"conditioning\": [\"1\", 0]\n        },\n        \"class_type\": \"ConditioningZeroOut\",\n        \"_meta\": {\n          \"title\": \"ConditioningZeroOut\"\n        }\n      }\n    },\n    \"client_id\": \"n8n\"\n  }\n}}",
+        "jsonBody": "={{\n  {\n    \"prompt\": {\n      \"1\": {\n        \"inputs\": {\n          \"prompt\": $json.prompt,\n          \"target_size\": 1024,\n          \"target_vl_size\": 384,\n          \"upscale_method\": \"lanczos\",\n          \"crop_method\": \"center\",\n          \"instruction\": \"Describe the key features of the input image (color, shape, size, texture, objects, background), then explain how the user's text instruction should alter or modify the image. Generate a new image that meets the user's requirements while maintaining consistency with the original input where appropriate.\",\n          \"clip\": [\"2\", 0],\n          \"vae\": [\"3\", 0],\n          \"vl_resize_image1\": [\"47\", 0]\n        },\n        \"class_type\": \"TextEncodeQwenImageEditPlusAdvance_lrzjason\",\n        \"_meta\": {\n          \"title\": \"TextEncodeQwenImageEditPlusAdvance lrzjason\"\n        }\n      },\n      \"2\": {\n        \"inputs\": {\n          \"clip_name\": \"qwen_2.5_vl_7b_fp8_scaled.safetensors\",\n          \"type\": \"qwen_image\",\n          \"device\": \"default\"\n        },\n        \"class_type\": \"CLIPLoader\",\n        \"_meta\": {\n          \"title\": \"Load CLIP\"\n        }\n      },\n      \"3\": {\n        \"inputs\": {\n          \"vae_name\": \"qwen_image_vae.safetensors\"\n        },\n        \"class_type\": \"VAELoader\",\n        \"_meta\": {\n          \"title\": \"Load VAE\"\n        }\n      },\n      \"6\": {\n        \"inputs\": {\n          \"seed\": Math.floor(Math.random() * 1000000000000000),\n          \"steps\": 8,\n          \"cfg\": 1,\n          \"sampler_name\": \"er_sde\",\n          \"scheduler\": \"simple\",\n          \"denoise\": 1,\n          \"model\": [\"35\", 0],\n          \"positive\": [\"1\", 0],\n          \"negative\": [\"7\", 0],\n          \"latent_image\": [\"1\", 1]\n        },\n        \"class_type\": \"KSampler\",\n        \"_meta\": {\n          \"title\": \"KSampler\"\n        }\n      },\n      \"7\": {\n        \"inputs\": {\n          \"conditioning\": [\"1\", 0]\n        },\n        \"class_type\": \"ConditioningZeroOut\",\n        \"_meta\": {\n          \"title\": \"ConditioningZeroOut\"\n        }\n      },\n      \"8\": {\n        \"inputs\": {\n          \"unet_name\": \"Qwen-Image-Edit-2509_fp8_e4m3fn.safetensors\",\n          \"weight_dtype\": \"fp8_e4m3fn\"\n        },\n        \"class_type\": \"UNETLoader\",\n        \"_meta\": {\n          \"title\": \"Load Diffusion Model\"\n        }\n      },\n      \"9\": {\n        \"inputs\": {\n          \"samples\": [\"6\", 0],\n          \"vae\": [\"3\", 0]\n        },\n        \"class_type\": \"VAEDecode\",\n        \"_meta\": {\n          \"title\": \"VAE Decode\"\n        }\n      },\n      \"15\": {\n        \"inputs\": {\n          \"lora_name\": \"Qwen-Image-Lightning-8steps-V1.1.safetensors\",\n          \"strength_model\": 1.0000000000000002,\n          \"model\": [\"8\", 0]\n        },\n        \"class_type\": \"LoraLoaderModelOnly\",\n        \"_meta\": {\n          \"title\": \"LoraLoaderModelOnly\"\n        }\n      },\n      \"17\": {\n        \"inputs\": {\n          \"model_name\": \"qwen\\\\Qwen-Image-Edit-2509-Q4_0.gguf\",\n          \"extra_model_name\": \"none\",\n          \"dequant_dtype\": \"default\",\n          \"patch_dtype\": \"default\",\n          \"patch_on_device\": false,\n          \"enable_fp16_accumulation\": false,\n          \"attention_override\": \"none\"\n        },\n        \"class_type\": \"GGUFLoaderKJ\",\n        \"_meta\": {\n          \"title\": \"GGUFLoaderKJ\"\n        }\n      },\n      \"29\": {\n        \"inputs\": {\n          \"lora_name\": \"white_to_scene.safetensors\",\n          \"strength_model\": 1,\n          \"model\": [\"15\", 0]\n        },\n        \"class_type\": \"LoraLoaderModelOnly\",\n        \"_meta\": {\n          \"title\": \"LoraLoaderModelOnly\"\n        }\n      },\n      \"34\": {\n        \"inputs\": {\n          \"shift\": 3,\n          \"model\": [\"29\", 0]\n        },\n        \"class_type\": \"ModelSamplingAuraFlow\",\n        \"_meta\": {\n          \"title\": \"ModelSamplingAuraFlow\"\n        }\n      },\n      \"35\": {\n        \"inputs\": {\n          \"strength\": 1,\n          \"model\": [\"34\", 0]\n        },\n        \"class_type\": \"CFGNorm\",\n        \"_meta\": {\n          \"title\": \"CFGNorm\"\n        }\n      },\n      \"45\": {\n        \"inputs\": {\n          \"rgthree_comparer\": {\n            \"images\": [\n              {\n                \"name\": \"A\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_eigkm_00003_.png&type=temp&subfolder=&rand=0.6273124169981674\"\n              },\n              {\n                \"name\": \"B\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_eigkm_00004_.png&type=temp&subfolder=&rand=0.3841891419252026\"\n              }\n            ]\n          },\n          \"image_a\": [\"49\", 0],\n          \"image_b\": [\"9\", 0]\n        },\n        \"class_type\": \"Image Comparer (rgthree)\",\n        \"_meta\": {\n          \"title\": \"Image Comparer (rgthree) base model\"\n        }\n      },\n      \"47\": {\n        \"inputs\": {\n          \"model\": \"RMBG-2.0\",\n          \"sensitivity\": 1,\n          \"process_res\": 1024,\n          \"mask_blur\": 0,\n          \"mask_offset\": 0,\n          \"invert_output\": false,\n          \"refine_foreground\": false,\n          \"background\": \"Color\",\n          \"background_color\": \"#222222\",\n          \"image\": [\"49\", 0]\n        },\n        \"class_type\": \"RMBG\",\n        \"_meta\": {\n          \"title\": \"Remove Background (RMBG)\"\n        }\n      },\n      \"49\": {\n        \"inputs\": {\n          \"image\": $json.image_filename\n        },\n        \"class_type\": \"LoadImage\",\n        \"_meta\": {\n          \"title\": \"Load Image\"\n        }\n      },\n      \"54\": {\n        \"inputs\": {\n          \"filename_prefix\": \"Aliexpress_Test\",\n          \"images\": [\"9\", 0]\n        },\n        \"class_type\": \"SaveImage\",\n        \"_meta\": {\n          \"title\": \"Save Image\"\n        }\n      },\n      \"55\": {\n        \"inputs\": {\n          \"text\": \"白底图转场景\"\n        },\n        \"class_type\": \"CR Text\",\n        \"_meta\": {\n          \"title\": \"🔤 CR Text Trigger word,do not change\"\n        }\n      },\n      \"56\": {\n        \"inputs\": {\n          \"delimiter\": \", \",\n          \"clean_whitespace\": \"true\",\n          \"text_a\": [\"55\", 0],\n          \"text_b\": [\"57\", 0]\n        },\n        \"class_type\": \"Text Concatenate\",\n        \"_meta\": {\n          \"title\": \"Text Concatenate\"\n        }\n      },\n      \"57\": {\n        \"inputs\": {\n          \"text\": $json[\"prompt\"]\n        },\n        \"class_type\": \"CR Text\",\n        \"_meta\": {\n          \"title\": \"🔤 CR Text additional prompt\"\n        }\n      },\n      \"59\": {\n        \"inputs\": {\n          \"images\": [\"47\", 0]\n        },\n        \"class_type\": \"PreviewImage\",\n        \"_meta\": {\n          \"title\": \"Preview Image\"\n        }\n      },\n      \"63\": {\n        \"inputs\": {\n          \"seed\": Math.floor(Math.random() * 1000000000000000),\n          \"steps\": 8,\n          \"cfg\": 1,\n          \"sampler_name\": \"er_sde\",\n          \"scheduler\": \"simple\",\n          \"denoise\": 1,\n          \"model\": [\"35\", 0],\n          \"positive\": [\"1\", 0],\n          \"negative\": [\"73\", 0],\n          \"latent_image\": [\"1\", 1]\n        },\n        \"class_type\": \"KSampler\",\n        \"_meta\": {\n          \"title\": \"KSampler\"\n        }\n      },\n      \"64\": {\n        \"inputs\": {\n          \"samples\": [\"63\", 0],\n          \"vae\": [\"3\", 0]\n        },\n        \"class_type\": \"VAEDecode\",\n        \"_meta\": {\n          \"title\": \"VAE Decode\"\n        }\n      },\n      \"65\": {\n        \"inputs\": {\n          \"filename_prefix\": \"Aliexpress_Test\",\n          \"images\": [\"64\", 0]\n        },\n        \"class_type\": \"SaveImage\",\n        \"_meta\": {\n          \"title\": \"Save Image\"\n        }\n      },\n      \"66\": {\n        \"inputs\": {\n          \"rgthree_comparer\": {\n            \"images\": [\n              {\n                \"name\": \"A\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_ygzph_00003_.png&type=temp&subfolder=&rand=0.546581772031995\"\n              },\n              {\n                \"name\": \"B\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_ygzph_00004_.png&type=temp&subfolder=&rand=0.8702932293516649\"\n              }\n            ]\n          },\n          \"image_a\": [\"49\", 0],\n          \"image_b\": [\"64\", 0]\n        },\n        \"class_type\": \"Image Comparer (rgthree)\",\n        \"_meta\": {\n          \"title\": \"Image Comparer (rgthree) base model\"\n        }\n      },\n      \"67\": {\n        \"inputs\": {\n          \"seed\": Math.floor(Math.random() * 1000000000000000),\n          \"steps\": 8,\n          \"cfg\": 1,\n          \"sampler_name\": \"er_sde\",\n          \"scheduler\": \"simple\",\n          \"denoise\": 1,\n          \"model\": [\"35\", 0],\n          \"positive\": [\"1\", 0],\n          \"negative\": [\"74\", 0],\n          \"latent_image\": [\"1\", 1]\n        },\n        \"class_type\": \"KSampler\",\n        \"_meta\": {\n          \"title\": \"KSampler\"\n        }\n      },\n      \"68\": {\n        \"inputs\": {\n          \"samples\": [\"67\", 0],\n          \"vae\": [\"3\", 0]\n        },\n        \"class_type\": \"VAEDecode\",\n        \"_meta\": {\n          \"title\": \"VAE Decode\"\n        }\n      },\n      \"69\": {\n        \"inputs\": {\n          \"filename_prefix\": \"Aliexpress_Test\",\n          \"images\": [\"68\", 0]\n        },\n        \"class_type\": \"SaveImage\",\n        \"_meta\": {\n          \"title\": \"Save Image\"\n        }\n      },\n      \"70\": {\n        \"inputs\": {\n          \"rgthree_comparer\": {\n            \"images\": [\n              {\n                \"name\": \"A\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_klxti_00003_.png&type=temp&subfolder=&rand=0.8258536168316297\"\n              },\n              {\n                \"name\": \"B\",\n                \"selected\": true,\n                \"url\": \"/api/view?filename=rgthree.compare._temp_klxti_00004_.png&type=temp&subfolder=&rand=0.9515632332584741\"\n              }\n            ]\n          },\n          \"image_a\": [\"49\", 0],\n          \"image_b\": [\"68\", 0]\n        },\n        \"class_type\": \"Image Comparer (rgthree)\",\n        \"_meta\": {\n          \"title\": \"Image Comparer (rgthree) base model\"\n        }\n      },\n      \"73\": {\n        \"inputs\": {\n          \"conditioning\": [\"1\", 0]\n        },\n        \"class_type\": \"ConditioningZeroOut\",\n        \"_meta\": {\n          \"title\": \"ConditioningZeroOut\"\n        }\n      },\n      \"74\": {\n        \"inputs\": {\n          \"conditioning\": [\"1\", 0]\n        },\n        \"class_type\": \"ConditioningZeroOut\",\n        \"_meta\": {\n          \"title\": \"ConditioningZeroOut\"\n        }\n      }\n    },\n    \"client_id\": \"n8n\"\n  }\n}}",
         "options": {}
       },
-      "id": "3a5ac469-bf36-49aa-89c3-505e3edc1d39",
+      "id": "52adc406-c571-463a-bf8e-056ac072b51f",
       "name": "Upload To ComfyUI",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -45,7 +45,7 @@
             {
               "id": "6ffac232-8342-4985-8b16-eca96abe68a7",
               "name": "prompt",
-              "value": "={{ $('Webhook').item.json.body.prompt }}",
+              "value": "={{ $('Code5').item.json.prompt }}",
               "type": "string"
             },
             {
@@ -60,7 +60,7 @@
           "includeBinary": true
         }
       },
-      "id": "47b073fc-80e3-41e5-8f5c-abb64383b85e",
+      "id": "18bb4680-8568-4023-854e-1cb596a63ee4",
       "name": "Prepare data",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.3,
@@ -70,10 +70,8 @@
       ]
     },
     {
-      "parameters": {
-        "amount": 60
-      },
-      "id": "bc160454-6f44-4106-87b0-510c49f1640b",
+      "parameters": {},
+      "id": "ec0b2534-b284-4b51-bcd8-c9d3e31f195f",
       "name": "Wait",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -100,12 +98,12 @@
           }
         }
       },
-      "id": "45b4623e-1f82-44fa-aca0-6c8294443d8e",
+      "id": "fb90ad4f-cf9d-471c-a051-e67f2b97dda3",
       "name": "Controllo Stato",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2860,
+        2940,
         560
       ]
     },
@@ -115,12 +113,12 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "e0799da3-9e0a-4b22-a31a-c98cd7fd43f1",
+      "id": "f829a20f-4eeb-436c-9ef0-a02f65bc8abe",
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        3460,
+        3900,
         560
       ]
     },
@@ -141,7 +139,7 @@
         },
         "options": {}
       },
-      "id": "551fe66b-8704-4cec-af04-a06c8fcfc11e",
+      "id": "e2794dfd-abad-49ab-a894-02c57b580851",
       "name": "HTTP Request",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -152,61 +150,55 @@
     },
     {
       "parameters": {
-        "jsCode": "// ComfyUI ritorna history come oggetto con prompt_id come chiave\nconst fullHistory = $json;\nconsole.log(\"=== DEBUG ===\");\nconsole.log(\"Chiavi history:\", Object.keys(fullHistory));\n\n// Prendi l'ultimo prompt (il più recente)\nconst promptIds = Object.keys(fullHistory);\nif (promptIds.length === 0) {\n  return {\n    json: {\n      success: false,\n      error: \"History vuota\"\n    }\n  };\n}\n\n// Ordina per timestamp (più recente prima)\nconst sortedIds = promptIds.sort((a, b) => {\n  const timeA = fullHistory[a].prompt?.[1] || 0;\n  const timeB = fullHistory[b].prompt?.[1] || 0;\n  return timeB - timeA;\n});\n\nconst latestPromptId = sortedIds[0];\nconst promptData = fullHistory[latestPromptId];\n\nconsole.log(\"Latest prompt ID:\", latestPromptId);\nconsole.log(\"Ha outputs?\", !!promptData.outputs);\n\nif (!promptData.outputs) {\n  return {\n    json: {\n      success: false,\n      error: \"Immagini non ancora pronte\"\n    }\n  };\n}\n\nconst outputs = promptData.outputs;\nconst images = [];\n\n// Filtra nodi SaveImage: 54, 65, 69\nconst saveImageNodes = ['54', '65', '69'];\n\nfor (const nodeId of saveImageNodes) {\n  if (outputs[nodeId] && outputs[nodeId].images && Array.isArray(outputs[nodeId].images)) {\n    outputs[nodeId].images.forEach(img => {\n      images.push({\n        filename: img.filename,\n        subfolder: img.subfolder || '',\n        type: img.type || 'output',\n        node_id: nodeId\n      });\n    });\n  }\n}\n\nconsole.log(\"Immagini trovate:\", images.length);\n\nif (images.length === 0) {\n  return {\n    json: {\n      success: false,\n      error: \"Nessuna immagine nei nodi SaveImage\"\n    }\n  };\n}\n\nreturn {\n  json: {\n    success: true,\n    images: images,\n    session_id: `session_${Date.now()}`,\n    total_images: images.length\n  }\n};\n"
+        "jsCode": "const fullHistory = $json;\nconst promptIds = Object.keys(fullHistory);\n\nif (promptIds.length === 0) {\n  return { json: { success: false, error: \"History vuota\" } };\n}\n\nconst sortedIds = promptIds.sort((a, b) => {\n  const timeA = fullHistory[a].prompt?.[1] || 0;\n  const timeB = fullHistory[b].prompt?.[1] || 0;\n  return timeB - timeA;\n});\n\nconst latestPromptId = sortedIds[0];\nconst promptData = fullHistory[latestPromptId];\n\nif (!promptData.outputs) {\n  console.log(\"Outputs non disponibili\");\n  return {\n    json: {\n      success: false,\n      error: \"Timeout: ComfyUI non ha completato la generazione\"\n    }\n  };\n}\n\nconst outputs = promptData.outputs;\nconst images = [];\nconst saveImageNodes = ['54', '65', '69'];\n\nfor (const nodeId of saveImageNodes) {\n  if (outputs[nodeId]?.images && Array.isArray(outputs[nodeId].images)) {\n    outputs[nodeId].images.forEach(img => {\n      if (img.type === 'output' || !img.type) {\n        images.push({\n          filename: img.filename,\n          subfolder: img.subfolder || '',\n          type: img.type || 'output',\n          node_id: nodeId\n        });\n      }\n    });\n  }\n}\n\nif (images.length === 0) {\n  return {\n    json: {\n      success: false,\n      error: \"Nessuna immagine trovata\"\n    }\n  };\n}\n\nconsole.log(`✅ Trovate ${images.length} immagini!`);\n\nreturn {\n  json: {\n    success: true,\n    images: images,\n    session_id: `session_${Date.now()}`,\n    total_images: images.length,\n    prompt_id: latestPromptId\n  }\n};\n"
       },
-      "id": "54264236-ae4f-42e0-89e1-2bbcf18afc9f",
+      "id": "6c1a5ad1-abfa-4caa-9dc8-72d89b72972f",
       "name": "Code",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3240,
-        560
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Code node di debug\nconsole.log(\"=== DEBUG ===\");\nconsole.log(\"Has binary?\", !!$binary.image);\nconsole.log(\"Binary keys:\", Object.keys($binary || {}));\nconsole.log(\"JSON keys:\", Object.keys($json));\n\nif (!$binary.image) {\n  throw new Error(\"⚠️ IMMAGINE BINARIA PERSA QUI!\");\n}\n\nreturn items;  // Passa tutto senza modifiche\n"
-      },
-      "id": "490e2f17-8dae-42f8-b6a6-7bdf422b5d7c",
-      "name": "Code2",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1420,
-        460
+        3540,
+        -40
       ],
       "disabled": true
     },
     {
       "parameters": {
-        "httpMethod": "POST",
-        "path": "generate-images",
-        "responseMode": "responseNode",
-        "options": {
-          "binaryPropertyName": "image"
-        }
-      },
-      "id": "52ac1b66-1e02-4c1c-9a2e-7a75488c4213",
-      "name": "Webhook",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2,
-      "position": [
-        460,
-        460
-      ],
-      "webhookId": "eca16c8e-ca13-42db-893e-f487f1063b09"
-    },
-    {
-      "parameters": {
         "jsCode": "// Estrai base64 dal JSON\nconst base64Data = $json.image || $json.body.image;\n\n// Rimuovi eventuale prefisso data:image/...\nconst base64Clean = base64Data.replace(/^data:image\\/\\w+;base64,/, '');\n\n// Converti in buffer binario\nconst buffer = Buffer.from(base64Clean, 'base64');\n\nreturn {\n  json: {\n    prompt: $json.prompt || $json.body.prompt\n  },\n  binary: {\n    image: {\n      data: buffer,\n      mimeType: 'image/jpeg',\n      fileName: 'product.jpg',\n      fileExtension: 'jpg'\n    }\n  }\n};\n"
       },
-      "id": "fb03b90a-5fae-4ac9-9dd5-55b9c3b05f70",
+      "id": "2ce83e42-80f2-45d7-978c-e4d82b57895b",
       "name": "Code5",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         680,
         460
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Salva il prompt_id di ComfyUI per controllarlo dopo\nconst response = $json;\n\nif (!response.prompt_id) {\n  throw new Error('ComfyUI non ha restituito un prompt_id');\n}\n\nconsole.log(`✅ Prompt ID salvato: ${response.prompt_id}`);\n\nreturn {\n  json: {\n    ...items[0].json,\n    comfyui_prompt_id: response.prompt_id\n  }\n};"
+      },
+      "id": "c7bd6fee-5983-4234-b2b6-ab4bd3a59fda",
+      "name": "Code1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2460,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Verifica se ComfyUI ha finito e se ci sono outputs\nconst history = $json.body || $json;\nconst promptId = $('Upload To ComfyUI').first().json.prompt_id; // Recupera l'ID originale\n\n// Se la history non ha ancora questo prompt o non ha outputs\nif (!history[promptId] || !history[promptId].outputs) {\n  return {\n    json: {\n      ready: false, // DICE AL WORKFLOW DI RIPROVARE\n      prompt_id: promptId\n    }\n  };\n}\n\n// Se siamo qui, ABBIAMO GLI OUTPUTS!\nconst promptData = history[promptId];\nconst outputs = promptData.outputs;\nconst images = [];\nconst saveImageNodes = ['54', '65', '69']; // I tuoi nodi SaveImage\n\n// Estrai le immagini\nfor (const nodeId of saveImageNodes) {\n  if (outputs[nodeId]?.images) {\n    outputs[nodeId].images.forEach(img => {\n      images.push({\n        filename: img.filename,\n        subfolder: img.subfolder || '',\n        type: img.type || 'output'\n      });\n    });\n  }\n}\n\nreturn {\n  json: {\n    ready: true, // DICE AL WORKFLOW DI USCIRE DAL LOOP\n    success: true,\n    images: images\n  }\n};"
+      },
+      "id": "c2bfc803-bc87-45d0-80f3-0ae4d8feecc0",
+      "name": "Code2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3280,
+        540
       ]
     },
     {
@@ -219,12 +211,13 @@
           },
           "conditions": [
             {
-              "id": "3dde814b-f97e-4646-9591-15de18fc7f79",
-              "leftValue": "={{ Object.keys($json).length }}",
-              "rightValue": 0,
+              "id": "6ac33efa-2615-4ae4-ad7d-714e2fe0b932",
+              "leftValue": "={{ $json.ready }}",
+              "rightValue": "",
               "operator": {
-                "type": "number",
-                "operation": "gt"
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
               }
             }
           ],
@@ -232,14 +225,31 @@
         },
         "options": {}
       },
-      "id": "1a7b86bb-b07d-4fd5-af9b-80849c843e69",
+      "id": "5adf640b-02d0-48bb-be28-e3aff0ad1a47",
       "name": "If",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        3040,
-        560
+        3500,
+        540
       ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-images-2",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "32c8110a-a410-49ba-b6dc-a645030b6890",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        320,
+        440
+      ],
+      "webhookId": "9b526f97-7c32-462d-8fad-1a5bd8276aaf"
     }
   ],
   "pinData": {},
@@ -259,7 +269,7 @@
       "main": [
         [
           {
-            "node": "Wait",
+            "node": "Code1",
             "type": "main",
             "index": 0
           }
@@ -281,7 +291,7 @@
       "main": [
         [
           {
-            "node": "If",
+            "node": "Code2",
             "type": "main",
             "index": 0
           }
@@ -292,40 +302,7 @@
       "main": [
         [
           {
-            "node": "Code2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code2": {
-      "main": [
-        [
-          {
             "node": "Prepare data",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Webhook": {
-      "main": [
-        [
-          {
-            "node": "Code5",
             "type": "main",
             "index": 0
           }
@@ -343,11 +320,33 @@
         ]
       ]
     },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "If": {
       "main": [
         [
           {
-            "node": "Code",
+            "node": "Respond to Webhook",
             "type": "main",
             "index": 0
           }
@@ -360,17 +359,28 @@
           }
         ]
       ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "40deff93-bbb3-4e04-b764-1d475744835d",
+  "versionId": "0f4966ad-3b9d-48e6-993c-964fcbf47b25",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "2e85d67866854cba78ecb0f1ecdd443366484af316908d026a6437d13aac85a2"
+    "instanceId": "673306e7388f18e9a5fc3387406046bc8324320491e8edb1dccac5593575f075"
   },
-  "id": "Me1TLxa70aQMBWHF",
+  "id": "wd36M7k5mPZmwt15",
   "tags": []
 }

@@ -10,15 +10,35 @@ import gradio as gr
 import requests
 import os
 import base64
+import time
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 # ========================================
 # ⚙️ CONFIGURAZIONE
 # ========================================
 
-N8N_IMAGES_URL = "http://localhost:5678/webhook/generate-images"
+N8N_IMAGES_URL = "http://0.0.0.0:5678/webhook/generate-images-2"
 N8N_VIDEO_URL = "http://localhost:5678/webhook/generate-video"
 
 BASE_OUTPUT_DIR = "/tmp/comfyui"  # Senza /output finale
+
+# ========================================
+# 🔧 SESSIONE REQUESTS CON RETRY
+# ========================================
+
+def create_session():
+    """Crea sessione requests con retry automatico"""
+    session = requests.Session()
+    retry = Retry(
+        total=3,
+        backoff_factor=0.5,
+        status_forcelist=[500, 502, 503, 504]
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
 
 # ========================================
 # 📸 FUNZIONE: GENERA IMMAGINI
@@ -35,9 +55,12 @@ def generate_images(image_path, prompt, progress=gr.Progress()):
     if not prompt or prompt.strip() == "":
         return [], None, [], "⚠️ Inserisci una descrizione!"
     
-    print(f"=== DEBUG GRADIO ===")
-    print(f"Image path: {image_path}")
-    print(f"Prompt: {prompt}")
+    print(f"\n{'='*50}")
+    print(f"🎬 INIZIO GENERAZIONE IMMAGINI")
+    print(f"{'='*50}")
+    print(f"📁 Image path: {image_path}")
+    print(f"💬 Prompt: {prompt}")
+    print(f"🕐 Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}")
     
     progress(0, desc="📤 Preparazione immagine...")
     
@@ -47,7 +70,9 @@ def generate_images(image_path, prompt, progress=gr.Progress()):
         buffered = io.BytesIO()
         img.save(buffered, format="JPEG", quality=95)
         img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        print(f"✅ Immagine codificata: {len(img_base64)} caratteri")
     except Exception as e:
+        print(f"❌ ERRORE caricamento immagine: {str(e)}")
         return [], None, [], f"❌ Errore caricamento immagine: {str(e)}"
     
     # Prepara payload
@@ -57,38 +82,90 @@ def generate_images(image_path, prompt, progress=gr.Progress()):
     }
     
     progress(0.1, desc="📡 Invio a n8n...")
+    print(f"📡 Invio richiesta a: {N8N_IMAGES_URL}")
     
     try:
-        # Invia richiesta a n8n
-        response = requests.post(
+        # Crea sessione con retry
+        session = create_session()
+        
+        # Timer di inizio
+        start_time = time.time()
+        
+        # Invia richiesta a n8n con TIMEOUT AUMENTATO
+        print(f"⏳ Timeout impostato: 240 secondi (4 minuti)")
+        response = session.post(
             N8N_IMAGES_URL,
             json=payload,
-            headers={"Content-Type": "application/json"},
-            timeout=180
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            timeout=240  # 4 MINUTI invece di 3
         )
+        
+        elapsed_time = time.time() - start_time
         
         progress(0.3, desc="⏳ ComfyUI sta generando...")
         
-        print(f"n8n Status Code: {response.status_code}")
+        print(f"\n{'='*50}")
+        print(f"📥 RISPOSTA DA n8n")
+        print(f"{'='*50}")
+        print(f"⏱️  Tempo di risposta: {elapsed_time:.2f} secondi")
+        print(f"📊 Status Code: {response.status_code}")
+        print(f"📋 Headers: {dict(response.headers)}")
+        print(f"📝 Response Text (primi 500 char): {response.text[:500]}")
         
         if response.status_code != 200:
-            return [], None, [], f"❌ Errore n8n (status {response.status_code})"
+            error_msg = f"❌ Errore n8n (status {response.status_code}): {response.text}"
+            print(error_msg)
+            return [], None, [], error_msg
         
         # Parsea JSON
-        result = response.json()
-        print(f"Full result: {result}")
+        try:
+            result = response.json()
+            print(f"✅ JSON parsato correttamente")
+            print(f"🔑 Chiavi JSON ricevute: {list(result.keys())}")
+            print(f"📦 Full result: {result}")
+        except Exception as json_error:
+            print(f"❌ ERRORE parsing JSON: {json_error}")
+            print(f"📝 Raw text: {response.text}")
+            return [], None, [], f"❌ Errore parsing JSON: {json_error}"
         
         progress(0.6, desc="📦 Ricezione risultati...")
         
-        # Verifica
+        # VERIFICA RISPOSTA PREMATURA
+        if "message" in result and result.get("message") == "Workflow executed successfully":
+            error_msg = """
+            ⚠️ n8n ha risposto troppo presto!
+            
+            Il webhook è configurato per rispondere immediatamente invece di aspettare il completamento.
+            
+            SOLUZIONE:
+            1. Apri n8n
+            2. Clicca sul nodo "Webhook" (primo nodo)
+            3. Nella sezione "Webhook Response" → Respond
+            4. Cambia in: "Using 'Respond to Webhook' Node"
+            5. Salva il workflow
+            """
+            print(f"❌ {error_msg}")
+            return [], None, [], error_msg
+        
+        # Verifica successo
         if not result.get("success"):
-            return [], None, [], "❌ Generazione fallita"
+            error_msg = result.get("error", "Generazione fallita (motivo sconosciuto)")
+            print(f"❌ n8n ha restituito success=false: {error_msg}")
+            return [], None, [], f"❌ {error_msg}"
         
         images_metadata = result.get("images", [])
         session_id = result.get("session_id", "unknown")
         
+        print(f"🆔 Session ID: {session_id}")
+        print(f"🖼️  Numero immagini ricevute: {len(images_metadata)}")
+        
         if not images_metadata:
-            return [], None, [], "❌ Nessuna immagine generata"
+            error_msg = "❌ n8n non ha restituito immagini. Verifica il nodo 'Respond to Webhook'"
+            print(error_msg)
+            return [], None, [], error_msg
         
         progress(0.7, desc=f"🖼️ Caricamento {len(images_metadata)} immagini...")
         
@@ -96,14 +173,12 @@ def generate_images(image_path, prompt, progress=gr.Progress()):
         output_images = []
         filenames_list = []
         
-        # Costruisci path corretto
-        if img_type == "output":
-            file_path = os.path.join(BASE_DIR, "output", filename)
-        else:
-            file_path = os.path.join(BASE_DIR, img_type, subfolder, filename) if subfolder else os.path.join(BASE_DIR, img_type, filename)
-
+        BASE_DIR = BASE_OUTPUT_DIR
         
-        print(f"=== CARICAMENTO IMMAGINI ===")
+        print(f"\n{'='*50}")
+        print(f"📂 CARICAMENTO IMMAGINI DAL FILESYSTEM")
+        print(f"{'='*50}")
+        print(f"📁 Base directory: {BASE_DIR}")
         
         for idx, img_meta in enumerate(images_metadata):
             filename = img_meta.get("filename")
@@ -111,22 +186,34 @@ def generate_images(image_path, prompt, progress=gr.Progress()):
             img_type = img_meta.get("type", "output")
             node_id = img_meta.get("node_id")
             
+            print(f"\n🔍 Immagine {idx+1}/{len(images_metadata)}:")
+            print(f"   📄 Filename: {filename}")
+            print(f"   📂 Subfolder: {subfolder}")
+            print(f"   🏷️  Type: {img_type}")
+            print(f"   🔢 Node ID: {node_id}")
+            
             if not filename:
+                print(f"   ⚠️  SKIP: filename mancante")
                 continue
             
             # FILTRA IMMAGINI INTERMEDIE
             if node_id == "59" or img_type == "temp":
-                print(f"⚠️ Saltata immagine intermedia: {filename}")
+                print(f"   ⚠️  SKIP: immagine intermedia/temp")
                 continue
             
             # Costruisci path
-            if subfolder:
-                file_path = os.path.join(BASE_DIR, img_type, subfolder, filename)
+            if img_type == "output":
+                file_path = os.path.join(BASE_DIR, "output", filename)
             else:
-                file_path = os.path.join(BASE_DIR, img_type, filename)
+                if subfolder:
+                    file_path = os.path.join(BASE_DIR, img_type, subfolder, filename)
+                else:
+                    file_path = os.path.join(BASE_DIR, img_type, filename)
+            
+            print(f"   📍 Path completo: {file_path}")
             
             if not os.path.exists(file_path):
-                print(f"⚠️ File non trovato: {file_path}")
+                print(f"   ❌ FILE NON TROVATO!")
                 continue
             
             # Carica e converti in numpy array
@@ -136,27 +223,37 @@ def generate_images(image_path, prompt, progress=gr.Progress()):
                 
                 output_images.append(numpy_image)
                 filenames_list.append(file_path)
-                print(f"✅ Caricata immagine {len(output_images)}: {filename}")
+                print(f"   ✅ CARICATA ({pil_image.size})")
             except Exception as e:
-                print(f"❌ Errore caricamento {filename}: {e}")
+                print(f"   ❌ Errore caricamento: {e}")
+        
+        print(f"\n{'='*50}")
+        print(f"📊 RISULTATO FINALE")
+        print(f"{'='*50}")
+        print(f"✅ Immagini caricate con successo: {len(output_images)}")
+        print(f"⏱️  Tempo totale: {time.time() - start_time:.2f} secondi")
         
         if not output_images:
-            return [], None, [], "❌ Nessuna immagine caricata"
+            error_msg = "❌ Nessuna immagine caricata dal filesystem"
+            print(error_msg)
+            return [], None, [], error_msg
         
         progress(1.0, desc="✅ Completato!")
-        
-        print(f"✅ Ritorno {len(output_images)} immagini")
         
         status_message = f"✅ Generate {len(output_images)} varianti! Clicca su un'immagine per selezionarla."
         
         return output_images, session_id, filenames_list, status_message
         
     except requests.exceptions.Timeout:
-        return [], None, [], "⏱️ Timeout: n8n impiega troppo tempo (>3min)"
+        error_msg = f"⏱️ TIMEOUT dopo 240 secondi. n8n non ha risposto in tempo.\n\nPossibili cause:\n1. ComfyUI impiega più di 4 minuti\n2. Il webhook n8n non è configurato correttamente\n3. Il nodo 'Wait' ha un valore troppo alto"
+        print(f"\n❌ {error_msg}")
+        return [], None, [], error_msg
     except requests.exceptions.RequestException as e:
-        return [], None, [], f"❌ Errore connessione: {str(e)}"
+        error_msg = f"❌ Errore connessione a n8n: {str(e)}"
+        print(f"\n❌ {error_msg}")
+        return [], None, [], error_msg
     except Exception as e:
-        print(f"❌ ERRORE: {e}")
+        print(f"\n❌ ERRORE GENERALE: {e}")
         import traceback
         traceback.print_exc()
         return [], None, [], f"❌ Errore: {str(e)}"
@@ -173,9 +270,12 @@ def generate_video(selected_file, session_id, progress=gr.Progress()):
     if not selected_file:
         return None, "❌ Nessuna immagine selezionata"
     
-    print(f"=== GENERA VIDEO ===")
-    print(f"File: {selected_file}")
-    print(f"Session: {session_id}")
+    print(f"\n{'='*50}")
+    print(f"🎬 INIZIO GENERAZIONE VIDEO")
+    print(f"{'='*50}")
+    print(f"📁 File: {selected_file}")
+    print(f"🆔 Session: {session_id}")
+    print(f"🕐 Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}")
     
     progress(0, desc="📤 Invio immagine a n8n...")
     
@@ -185,6 +285,7 @@ def generate_video(selected_file, session_id, progress=gr.Progress()):
             image_bytes = f.read()
         
         img_base64 = base64.b64encode(image_bytes).decode('utf-8')
+        print(f"✅ Immagine codificata: {len(img_base64)} caratteri")
         
         # Prepara payload
         payload = {
@@ -195,40 +296,73 @@ def generate_video(selected_file, session_id, progress=gr.Progress()):
         
         progress(0.2, desc="📡 Connessione a n8n...")
         
-        # Chiamata a n8n
-        response = requests.post(
+        # Crea sessione con retry
+        session = create_session()
+        
+        start_time = time.time()
+        
+        # Chiamata a n8n con TIMEOUT AUMENTATO
+        print(f"📡 Invio richiesta a: {N8N_VIDEO_URL}")
+        print(f"⏳ Timeout impostato: 300 secondi (5 minuti)")
+        
+        response = session.post(
             N8N_VIDEO_URL,
             json=payload,
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
             timeout=300  # 5 minuti per il video
         )
         
+        elapsed_time = time.time() - start_time
+        
         progress(0.5, desc="🎬 Generazione video in corso...")
         
+        print(f"\n{'='*50}")
+        print(f"📥 RISPOSTA DA n8n (VIDEO)")
+        print(f"{'='*50}")
+        print(f"⏱️  Tempo di risposta: {elapsed_time:.2f} secondi")
+        print(f"📊 Status Code: {response.status_code}")
+        
         if response.status_code != 200:
-            return None, f"❌ Errore n8n (status {response.status_code}): {response.text}"
+            error_msg = f"❌ Errore n8n (status {response.status_code}): {response.text}"
+            print(error_msg)
+            return None, error_msg
         
         result = response.json()
+        print(f"✅ JSON parsato: {result}")
         
         progress(0.8, desc="📥 Ricezione video...")
         
         if not result.get("success"):
-            return None, f"❌ Generazione video fallita: {result.get('error', 'Unknown')}"
+            error_msg = f"❌ Generazione video fallita: {result.get('error', 'Unknown')}"
+            print(error_msg)
+            return None, error_msg
         
         # Ottieni il path del video
         video_path = result.get("video_path")
         
+        print(f"📹 Video path ricevuto: {video_path}")
+        
         if not video_path or not os.path.exists(video_path):
-            return None, "❌ Video generato ma file non trovato"
+            error_msg = "❌ Video generato ma file non trovato"
+            print(error_msg)
+            return None, error_msg
         
         progress(1.0, desc="✅ Video pronto!")
+        
+        print(f"✅ Video generato con successo: {os.path.basename(video_path)}")
+        print(f"⏱️  Tempo totale: {elapsed_time:.2f} secondi")
         
         return video_path, f"✅ Video generato con successo! ({os.path.basename(video_path)})"
         
     except requests.exceptions.Timeout:
-        return None, "⏱️ Timeout: la generazione video richiede troppo tempo"
+        error_msg = "⏱️ Timeout: la generazione video richiede più di 5 minuti"
+        print(f"\n❌ {error_msg}")
+        return None, error_msg
     except Exception as e:
-        print(f"❌ Errore video: {e}")
+        print(f"\n❌ Errore video: {e}")
         import traceback
         traceback.print_exc()
         return None, f"❌ Errore: {str(e)}"
@@ -244,7 +378,7 @@ with gr.Blocks(title="AI Campaign Manager") as demo:
     state_session_id = gr.State()
     state_filenames = gr.State()
     state_selected_file = gr.State()
-    state_has_generated = gr.State(value=False)  # Traccia se ha generato immagini
+    state_has_generated = gr.State(value=False)
 
     gr.Markdown("# 🛍️ Generatore Campagne AI")
     gr.Markdown("Trasforma le foto dei tuoi prodotti in campagne marketing professionali")
@@ -302,7 +436,7 @@ with gr.Blocks(title="AI Campaign Manager") as demo:
                 )
 
     # ========================================
-    # TAB 2: GENERAZIONE VIDEO (INIZIALMENTE DISABILITATO)
+    # TAB 2: GENERAZIONE VIDEO
     # ========================================
     with gr.Tab("🎬 Genera Video", id=1) as tab_video:
         with gr.Row():
@@ -397,9 +531,14 @@ with gr.Blocks(title="AI Campaign Manager") as demo:
 # ========================================
 
 if __name__ == "__main__":
-    print("🚀 Avvio AI Campaign Manager...")
-    print(f"📡 n8n Images: {N8N_IMAGES_URL}")
-    print(f"📡 n8n Video: {N8N_VIDEO_URL}")
+    print(f"\n{'='*60}")
+    print(f"🚀 AVVIO AI CAMPAIGN MANAGER")
+    print(f"{'='*60}")
+    print(f"📡 n8n Images Endpoint: {N8N_IMAGES_URL}")
+    print(f"📡 n8n Video Endpoint: {N8N_VIDEO_URL}")
+    print(f"📁 Base Output Directory: {BASE_OUTPUT_DIR}")
+    print(f"⏰ Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"{'='*60}\n")
     
     demo.launch(
         server_name="0.0.0.0",
