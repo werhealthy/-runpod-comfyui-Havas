@@ -274,6 +274,22 @@ for file in "$N8N_WF_DIR"/*.json; do
 done
 
 echo "✔️ Workflow n8n salvati in $N8N_WF_DIR"
+echo "📥 Import automatico dei workflow in n8n..."
+
+export N8N_ENCRYPTION_KEY="dev-aliexpress-key-super-segreta"
+export N8N_BASIC_AUTH_ACTIVE=true
+export N8N_BASIC_AUTH_USER=admin
+export N8N_BASIC_AUTH_PASSWORD=havas123
+
+# Importa il primo workflow (Image Generator)
+n8n import:workflow --input="$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json" || \
+  echo "⚠️ Import fallito per _ALIEXPRESS__01___Image_Generator.json"
+
+# Importa il secondo workflow (Video Generator)
+n8n import:workflow --input="$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json" || \
+  echo "⚠️ Import fallito per _ALIEXPRESS__02___Video_Generator.json"
+
+echo "✔️ Workflow importati nel DB di n8n (utente root)"
 
 ###############################################
 # 8. COPIA WORKFLOW NELLA CARTELLA n8n
@@ -300,7 +316,9 @@ fi
 # 9. AVVIO AUTOMATICO N8N
 ###############################################
 
-echo "🚀 Avvio n8n per
+echo "🚀 Avvio automatico di n8n (AliExpress)..."
+nohup /usr/local/bin/run-aliexpress-n8n > /tmp/n8n.log 2>&1 &
+echo "✔️ n8n avviato in background sulla porta 5678 (log: /tmp/n8n.log)"
 
 ###############################################
 # 10. MESSAGGIO FINALE
