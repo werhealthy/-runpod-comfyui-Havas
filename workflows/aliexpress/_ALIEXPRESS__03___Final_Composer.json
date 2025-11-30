@@ -1,0 +1,86 @@
+{
+  "name": "[ALIEXPRESS] 03 - Final Composer",
+  "nodes": [
+    {
+      "parameters": {
+        "command": "={{ `ffmpeg -y -i \"${$json.body.input_video}\" -filter_complex \"\n[0:v]drawtext=fontfile='${$json.body.l1_font}':text='${$json.body.l1_text}':fontcolor=white:fontsize=45*(min((t-0.5)/0.15\\\\,1)):x=(w-text_w)/2:y=(h-text_h)*${$json.body.y_head}/100:enable='gt(t,0.5)',\n\ndrawtext=fontfile='${$json.body.l2_font}':text='${$json.body.l2_text}':fontcolor=white:fontsize=45*(min((t-1.2)/0.15\\\\,1)):x=(w-text_w)/2:y=((h-text_h)*${$json.body.y_head}/100)+55:enable='gt(t,1.2)',\n\ndrawtext=fontfile='${$json.body.l3_font}':text='${$json.body.l3_text}':fontcolor=white:fontsize=45*(min((t-1.9)/0.15\\\\,1)):x=(w-text_w)/2:y=((h-text_h)*${$json.body.y_head}/100)+110:enable='gt(t,1.9)',\n\ndrawtext=fontfile='/tmp/comfyui/TTNormsPro-Bold.ttf':text='${$json.body.text_foot}':fontcolor=0xE43225:fontsize=45*(min((t-2.5)/0.15\\\\,1)):x=(w-text_w)/2:y='h-(h-(h-text_h)*${$json.body.y_foot}/100)':enable='gt(t,2.5)'\n\" -c:v libx264 -pix_fmt yuv420p \"/tmp/comfyui/output/${$json.body.output_name}\"` }}"
+      },
+      "id": "40edda2f-f64d-44af-9de1-59fae62e7750",
+      "name": "Execute Command",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        980,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"video_path\": \"/tmp/comfyui/output/{{ $('Webhook').item.json.body.output_name }}\"\n}",
+        "options": {}
+      },
+      "id": "ee5daba7-7815-48e8-a2f3-eea865e908dc",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1160,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-final-video",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "9a6e6329-e246-4da8-9bb6-0cbf9f1fd2e5",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        760,
+        460
+      ],
+      "webhookId": "74262d2a-1428-49ad-afc6-513814465491"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Execute Command": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e2d038b9-e711-4a08-a014-5350e77984f3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "673306e7388f18e9a5fc3387406046bc8324320491e8edb1dccac5593575f075"
+  },
+  "id": "2TOZkvwmM6Gohdim",
+  "tags": []
+}

@@ -1,46 +1,30 @@
 {
-  "name": "[ALIEXPRESS] 02 - Video Generator",
+  "name": "My workflow 2",
   "nodes": [
     {
       "parameters": {
-        "command": "={{ `ffmpeg -y -loop 1 -i \"/tmp/comfyui/output/${$json.body.session_id}/${$json.body.image_filename}\" -vf \"scale=-1:1280,crop=720:1280,zoompan=z='min(zoom+0.0015,1.5)':d=125:s=720x1280\" -c:v libx264 -t 4 -pix_fmt yuv420p \"/tmp/comfyui/output/${$json.body.session_id}/video_${$json.body.image_filename}.mp4\"` }}"
+        "command": "=ffmpeg -y -loop 1 -i \"{{ $json.body.image_path }}\" -vf \"scale=-1:1280,crop=720:1280,zoompan=z='min(zoom+0.0005,1.15)':d=250:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=720x1280\" -c:v libx264 -t 8 -pix_fmt yuv420p \"/tmp/comfyui/output/{{ $json.body.output_name }}\""
       },
-      "id": "c74348f3-2122-4802-bf9f-e103dde377c9",
+      "id": "77283ff1-46ce-4aee-8455-249ecbc978f5",
       "name": "Execute Command",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        1260,
+        460,
         460
       ]
-    },
-    {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "generate-video",
-        "options": {}
-      },
-      "id": "9b0758c5-807d-472b-8b40-fa2f6a0592af",
-      "name": "Webhook",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2,
-      "position": [
-        1060,
-        520
-      ],
-      "webhookId": "005844b0-3fd8-40ec-a828-c0f1b6d44b33"
     },
     {
       "parameters": {
         "fileSelector": "=/tmp/comfyui/output/{{$json.body.session_id}}/video_{{$json.body.image_filename}}.mp4",
         "options": {}
       },
-      "id": "46eaa449-f490-4f62-9bc2-2b9313b3212e",
+      "id": "d1370955-6c29-4358-aa6a-2c9792006661",
       "name": "Read/Write Files from Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
       "position": [
-        1480,
+        680,
         460
       ]
     },
@@ -49,29 +33,35 @@
         "respondWith": "binary",
         "options": {}
       },
-      "id": "9e53b4f2-5a95-4f3d-a3b0-3f6774d3ad9a",
+      "id": "496cbffe-b6ab-46c4-a8d6-86ff7afed70a",
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        1700,
+        900,
         460
       ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-video",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "cd2bf5ce-cc0f-437e-bf88-558f108efa80",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        520
+      ],
+      "webhookId": "005844b0-3fd8-40ec-a828-c0f1b6d44b33"
     }
   ],
   "pinData": {},
   "connections": {
-    "Webhook": {
-      "main": [
-        [
-          {
-            "node": "Execute Command",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Execute Command": {
       "main": [
         [
@@ -93,17 +83,28 @@
           }
         ]
       ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "309dafe0-c536-4721-8c6f-41ee72372cbb",
+  "versionId": "84670763-7c6a-49f1-b10f-689047f99917",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "53c66e947bc87bc13c805057c08678684ceea46142439d7ae45eeb2c316a4398"
+    "instanceId": "673306e7388f18e9a5fc3387406046bc8324320491e8edb1dccac5593575f075"
   },
-  "id": "3QuIDyCMNDSldrGT",
+  "id": "QW9QDkdITYQodB3q",
   "tags": []
 }
