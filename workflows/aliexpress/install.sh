@@ -64,12 +64,16 @@ wget -c --show-progress "https://huggingface.co/lightx2v/Qwen-Image-Lightning/re
 wget -c --show-progress "https://huggingface.co/dx8152/Qwen-Image-Edit-2509-White_to_Scene/resolve/main/%E7%99%BD%E5%BA%95%E5%9B%BE%E8%BD%AC%E5%9C%BA%E6%99%AF.safetensors" \
   -O "$MODEL_DIR/loras/white_to_scene.safetensors"
 
+# --- FONTS ---
 echo "🔤 Installazione Fonts..."
-# Assicurati di aver caricato i file .ttf nella cartella 'fonts' del tuo repo GitHub!
-FONT_BASE_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/fonts"
 
+# URL base che punta alla cartella workflows/aliexpress dove hai caricato i file
+FONT_BASE_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress"
+
+# Scarica Bold
 wget -c "$FONT_BASE_URL/TTNormsPro-Bold.ttf" -O "$COMFY_DIR/TTNormsPro-Bold.ttf"
-# Rinominiamo Regular in Normal per compatibilità con il codice Python
+
+# Scarica Regular ma lo salva come 'Normal' per compatibilità con lo script Python
 wget -c "$FONT_BASE_URL/TTNormsPro-Regular.ttf" -O "$COMFY_DIR/TTNormsPro-Normal.ttf"
 
 ###############################################
