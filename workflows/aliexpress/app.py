@@ -18,7 +18,7 @@ import base64
 N8N_IMAGES_URL = "http://localhost:5678/webhook/generate-images"
 N8N_VIDEO_URL = "http://localhost:5678/webhook/generate-video"
 
-BASE_OUTPUT_DIR = "/tmp/comfyui/output"
+BASE_OUTPUT_DIR = "/tmp/comfyui"  # Senza /output finale
 
 # ========================================
 # 📸 FUNZIONE: GENERA IMMAGINI
@@ -95,7 +95,13 @@ def generate_images(image_path, prompt, progress=gr.Progress()):
         # LEGGI I FILE DAL FILESYSTEM
         output_images = []
         filenames_list = []
-        BASE_DIR = "/tmp/comfyui"
+        
+        # Costruisci path corretto
+        if img_type == "output":
+            file_path = os.path.join(BASE_DIR, "output", filename)
+        else:
+            file_path = os.path.join(BASE_DIR, img_type, subfolder, filename) if subfolder else os.path.join(BASE_DIR, img_type, filename)
+
         
         print(f"=== CARICAMENTO IMMAGINI ===")
         
