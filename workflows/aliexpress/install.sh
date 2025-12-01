@@ -70,10 +70,16 @@ echo "🔤 Installazione Fonts..."
 FONT_BASE_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress"
 
 # Scarica Bold
-wget -c "$FONT_BASE_URL/TTNormsPro-Bold.ttf" -O "$COMFY_DIR/TTNormsPro-Bold.ttf"
+wget -c "$FONT_BASE_URL/AliExpress sans.otf" -O "$COMFY_DIR/AliExpress sans.otf"
 
 # Scarica Regular ma lo salva come 'Normal' per compatibilità con lo script Python
-wget -c "$FONT_BASE_URL/TTNormsPro-Regular.ttf" -O "$COMFY_DIR/TTNormsPro-Normal.ttf"
+wget -c "$FONT_BASE_URL/AliExpress sans regluar.otf" -O "$COMFY_DIR/AliExpress sans regluar.otf"
+
+# --- VIDEO ASSETS ---
+echo "🎥 Installazione Video Assets..."
+
+# Scarica 'output.mov' e lo salva come 'outro.mp4' nella cartella di ComfyUI
+wget -c "$FONT_BASE_URL/output.mov" -O "$COMFY_DIR/outro.mp4"
 
 ###############################################
 # 3. INSTALLAZIONE CUSTOM NODES
