@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 """
 🛍️ AI Campaign Manager - Gradio Frontend
 """
@@ -113,25 +110,41 @@ def generate_video(selected_file, session_id, progress=gr.Progress()):
 # ✍️ STEP 3: VIDEO FINALE (Storytelling)
 # ========================================
 
-def generate_final_video(base_video, 
-                         l1t, l1f, l2t, l2f, l3t, l3f, l4t, l4f, l5t, l5f, 
-                         xh, yh, tf, xf, yf, 
+def generate_final_video(base_video_path, 
+                         l1_text, l1_font, 
+                         l2_text, l2_font, 
+                         l3_text, l3_font, 
+                         l4_text, l4_font, 
+                         l5_text, l5_font, 
+                         x_head, y_head, 
+                         text_foot, x_foot, y_foot, 
                          progress=gr.Progress()):
     
-    if not base_video: return None, "❌ Manca video base"
+    if not base_video_path:
+        return None, "❌ Nessun video base caricato"
+
+    print(f"\n{'='*50}")
+    print(f"🎨 INIZIO POST-PRODUZIONE")
     
-    font_map = {"Bold": "/tmp/comfyui/TTNormsPro-Bold.ttf", "Normal": "/tmp/comfyui/TTNormsPro-Normal.ttf"}
+    # --- MAPPA FONT ESATTA (Con spazi e typo 'regluar') ---
+    font_map = {
+        "Bold": "/tmp/comfyui/AliExpress sans.otf", 
+        "Normal": "/tmp/comfyui/AliExpress sans regluar.otf"
+    }
+    
     output_name = f"final_{int(time.time())}.mp4"
     
+    # Payload
     payload = {
-        "input_video": base_video, "output_name": output_name,
-        "x_head": xh, "y_head": yh, "text_foot": tf, "x_foot": xf, "y_foot": yf,
-        # Righe Esplicite
-        "l1_text": l1t, "l1_font": font_map.get(l1f, font_map["Bold"]),
-        "l2_text": l2t, "l2_font": font_map.get(l2f, font_map["Normal"]),
-        "l3_text": l3t, "l3_font": font_map.get(l3f, font_map["Normal"]),
-        "l4_text": l4t, "l4_font": font_map.get(l4f, font_map["Normal"]),
-        "l5_text": l5t, "l5_font": font_map.get(l5f, font_map["Normal"]),
+        "input_video": base_video_path, "output_name": output_name,
+        "x_head": x_head, "y_head": y_head, 
+        "text_foot": text_foot, "x_foot": x_foot, "y_foot": y_foot,
+        # Righe
+        "l1_text": l1_text, "l1_font": font_map.get(l1_font, font_map["Bold"]),
+        "l2_text": l2_text, "l2_font": font_map.get(l2_font, font_map["Normal"]),
+        "l3_text": l3_text, "l3_font": font_map.get(l3_font, font_map["Normal"]),
+        "l4_text": l4_text, "l4_font": font_map.get(l4_font, font_map["Normal"]),
+        "l5_text": l5_text, "l5_font": font_map.get(l5_font, font_map["Normal"]),
     }
     
     try:
@@ -139,7 +152,7 @@ def generate_final_video(base_video,
         response = session.post(N8N_FINAL_URL, json=payload, timeout=300)
         expected = os.path.join(BASE_OUTPUT_DIR, "output", output_name)
         time.sleep(1)
-        if os.path.exists(expected): return expected, "✅ Video Finale OK"
+        if os.path.exists(expected): return expected, "✅ Video Finale Completato!"
         return None, f"❌ Errore n8n: {response.text}"
     except Exception as e:
         return None, f"❌ Errore: {str(e)}"
@@ -184,7 +197,7 @@ with gr.Blocks(title="AI Campaign Manager") as demo:
                     final_preview = gr.Image(interactive=False, height=300, label="Anteprima")
                     btn_gen_vid = gr.Button("✨ Genera Video Base", variant="primary")
                 with gr.Column(scale=2):
-                    out_video = gr.Video(height=450, label="Video Base")
+                    out_video = gr.Video(height=450, label="Video Base", interactive=False)
                     video_status = gr.Markdown("")
             
             with gr.Row(visible=False) as video_confirm_section:
@@ -309,8 +322,8 @@ with gr.Blocks(title="AI Campaign Manager") as demo:
         fn=generate_final_video, 
         inputs=[
             inp_video_step3, 
-            l1_txt, l1_font, 
-            l2_txt, l2_font, 
+            l1_txt, l1_font,   # <--- CORRETTO
+            l2_txt, l2_font,   # <--- CORRETTO
             l3_txt, l3_font, 
             l4_txt, l4_font, 
             l5_txt, l5_font, 
