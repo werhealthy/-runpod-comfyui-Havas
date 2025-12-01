@@ -24,8 +24,7 @@ mkdir -p \
 ###############################################
 echo "🚀 Installazione dipendenze di sistema..."
 
-apt-get update && apt-get install -y fonts-dejavu-core ffmpeg libgl1-mesa-glx
-
+apt-get update && apt-get install -y fonts-dejavu-core ffmpeg libgl1-mesa-glx jq
 echo "🚀 Installazione tool Python..."
 pip install hf_transfer huggingface_hub
 
@@ -290,20 +289,32 @@ export N8N_BASIC_AUTH_ACTIVE=true
 export N8N_BASIC_AUTH_USER=admin
 export N8N_BASIC_AUTH_PASSWORD=havas123
 
-# Importa il primo workflow (Image Generator)
-n8n import:workflow --input="$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json" || \
-  echo "⚠️ Import fallito per _ALIEXPRESS__01___Image_Generator.json"
+# Funzione per correggere e importare
+import_safe() {
+  local FILE="$1"
+  local FIXED_FILE="${FILE}_fixed.json"
+  
+  if [ -f "$FILE" ]; then
+    echo "🔧 Correggo formato JSON per: $(basename "$FILE")"
+    # Usa jq per mettere il contenuto dentro una lista [ ... ]
+    jq -s '.' "$FILE" > "$FIXED_FILE"
+    
+    echo "➡️ Importo in n8n..."
+    n8n import:workflow --input="$FIXED_FILE" || echo "⚠️ Errore importazione $(basename "$FILE")"
+    
+    # Pulizia
+    rm "$FIXED_FILE"
+  else
+    echo "❌ File non trovato: $FILE"
+  fi
+}
 
-# Importa il secondo workflow (Video Generator)
-n8n import:workflow --input="$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json" || \
-  echo "⚠️ Import fallito per _ALIEXPRESS__02___Video_Generator.json"
-
-# Importa il terzo workflow (Final Composer)
-n8n import:workflow --input="$N8N_WF_DIR/_ALIEXPRESS__03___Final_Composer.json" || \
-  echo "⚠️ Import fallito per _ALIEXPRESS__03___Final_Composer.json"
+# Esegui importazione sicura per i 3 file
+import_safe "$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json"
+import_safe "$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json"
+import_safe "$N8N_WF_DIR/_ALIEXPRESS__03___Final_Composer.json"
 
 echo "✔️ Workflow importati nel DB di n8n (utente root)"
-
 ###############################################
 # 8. COPIA WORKFLOW NELLA CARTELLA n8n
 ###############################################
