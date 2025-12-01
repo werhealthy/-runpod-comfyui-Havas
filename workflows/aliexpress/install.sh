@@ -314,7 +314,11 @@ import_safe "$N8N_WF_DIR/_ALIEXPRESS__01___Image_Generator.json"
 import_safe "$N8N_WF_DIR/_ALIEXPRESS__02___Video_Generator.json"
 import_safe "$N8N_WF_DIR/_ALIEXPRESS__03___Final_Composer.json"
 
-echo "✔️ Workflow importati nel DB di n8n (utente root)"
+echo "🔌 Attivazione automatica di tutti i workflow..."
+# Questo comando attiva tutti i workflow importati nel database
+n8n update:workflow --all --active=true
+
+echo "✔️ Workflow importati e ATTIVI nel DB di n8n"
 ###############################################
 # 8. COPIA WORKFLOW NELLA CARTELLA n8n
 ###############################################
