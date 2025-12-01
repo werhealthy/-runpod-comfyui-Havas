@@ -1,10 +1,10 @@
 {
-  "name": "My workflow",
+  "name": "_ALIEXPRESS__01___Image_Generator.json",
   "nodes": [
     {
       "parameters": {
         "method": "POST",
-        "url": "https://rgb3xi31i25ym2-8188.proxy.runpod.net/prompt",
+        "url": "http://127.0.0.1:8188/prompt",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -83,7 +83,7 @@
     },
     {
       "parameters": {
-        "url": "=https://rgb3xi31i25ym2-8188.proxy.runpod.net/history\n",
+        "url": "=http://127.0.0.1:8188/history",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -125,7 +125,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://rgb3xi31i25ym2-8188.proxy.runpod.net/upload/image",
+        "url": "http://127.0.0.1:8188/upload/image",
         "sendBody": true,
         "contentType": "multipart-form-data",
         "bodyParameters": {
