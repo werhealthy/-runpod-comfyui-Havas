@@ -107,7 +107,7 @@ def generate_video(selected_file, session_id, progress=gr.Progress()):
         return None, f"❌ Errore: {str(e)}"
 
 # ========================================
-# ✍️ STEP 3: VIDEO FINALE (Storytelling)
+# ✍️ STEP 3: VIDEO FINALE (Con Calcolo Larghezza)
 # ========================================
 
 def generate_final_video(base_video_path, 
@@ -126,25 +126,36 @@ def generate_final_video(base_video_path,
     print(f"\n{'='*50}")
     print(f"🎨 INIZIO POST-PRODUZIONE")
     
-    # --- MAPPA FONT ESATTA (Con spazi e typo 'regluar') ---
+    # 1. Mappa Font
     font_map = {
         "Bold": "/tmp/comfyui/AliExpress sans.otf", 
         "Normal": "/tmp/comfyui/AliExpress sans regluar.otf"
     }
     
+    # 2. Funzione Pulizia Testo
+    def cln(t): return t.strip() if t and t.strip() else " "
+    
+    # 3. CALCOLO LARGHEZZA RETTANGOLO (Nuova Parte)
+    # Pulisci il footer
+    clean_foot = cln(text_foot)
+    # Calcola i pixel: (Numero caratteri * 26px) + 80px di margine. Se vuoto = 0.
+    box_width = (len(clean_foot) * 26) + 80 if clean_foot != " " else 0
+    
     output_name = f"final_{int(time.time())}.mp4"
     
-    # Payload
+    # 4. Payload con il nuovo parametro 'box_width'
     payload = {
         "input_video": base_video_path, "output_name": output_name,
         "x_head": x_head, "y_head": y_head, 
-        "text_foot": text_foot, "x_foot": x_foot, "y_foot": y_foot,
-        # Righe
-        "l1_text": l1_text, "l1_font": font_map.get(l1_font, font_map["Bold"]),
-        "l2_text": l2_text, "l2_font": font_map.get(l2_font, font_map["Normal"]),
-        "l3_text": l3_text, "l3_font": font_map.get(l3_font, font_map["Normal"]),
-        "l4_text": l4_text, "l4_font": font_map.get(l4_font, font_map["Normal"]),
-        "l5_text": l5_text, "l5_font": font_map.get(l5_font, font_map["Normal"]),
+        "text_foot": clean_foot, "x_foot": x_foot, "y_foot": y_foot,
+        
+        "box_width": box_width,  # <--- ECCOLO QUI!
+        
+        "l1_text": cln(l1_text), "l1_font": font_map.get(l1_font, font_map["Bold"]),
+        "l2_text": cln(l2_text), "l2_font": font_map.get(l2_font, font_map["Normal"]),
+        "l3_text": cln(l3_text), "l3_font": font_map.get(l3_font, font_map["Normal"]),
+        "l4_text": cln(l4_text), "l4_font": font_map.get(l4_font, font_map["Normal"]),
+        "l5_text": cln(l5_text), "l5_font": font_map.get(l5_font, font_map["Normal"]),
     }
     
     try:
