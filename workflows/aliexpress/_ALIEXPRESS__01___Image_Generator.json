@@ -4,7 +4,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://127.0.0.1:8188/prompt",
+        "url": "https://rgb3xi31i25ym2-8188.proxy.runpod.net/prompt",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -83,7 +83,7 @@
     },
     {
       "parameters": {
-        "url": "=http://127.0.0.1:8188/history\n",
+        "url": "=https://rgb3xi31i25ym2-8188.proxy.runpod.net/history\n",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -125,7 +125,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://127.0.0.1:8188/upload/image",
+        "url": "https://rgb3xi31i25ym2-8188.proxy.runpod.net/upload/image",
         "sendBody": true,
         "contentType": "multipart-form-data",
         "bodyParameters": {
