@@ -1,0 +1,354 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "binary",
+        "options": {}
+      },
+      "id": "b94acde9-6dc0-42b5-be44-5682857316a4",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        3160,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/tmp/comfyui/output/video_{{$json.image_filename}}.mp4",
+        "options": {}
+      },
+      "id": "812da005-d4a6-4901-9986-82ddbedd25e4",
+      "name": "Salva video",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        2740,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/tmp/comfyui/output/{{$json.body.session_id}}/{{$json.body.image_filename}}",
+        "options": {}
+      },
+      "id": "1c660c50-2999-4a01-abf7-aaac22a5abaf",
+      "name": "Read/Write Files from Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// TRASFORMAZIONE IN BASE64 (Elimina la necessità di upload file)\nconst binaryProp = items[0].binary.data;\n\nif (!binaryProp) throw new Error(\"❌ NESSUN FILE TROVATO: Controlla il nodo precedente!\");\n\nconst base64String = binaryProp.data;\nconst mimeType = binaryProp.mimeType || 'image/png';\n\nreturn {\n  json: {\n    // Creiamo la stringa Data URI che contiene l'immagine intera\n    data_uri: `data:${mimeType};base64,${base64String}`,\n    // Passiamo avanti i dati del prompt\n    prompt: $('Webhook').first().json.body.prompt || \"Cinematic zoom\",\n    session_id: $('Webhook').first().json.body.session_id,\n    image_filename: $('Webhook').first().json.body.image_filename\n  }\n};"
+      },
+      "id": "f49316b1-fc27-4f03-9133-a51d5ac2b613",
+      "name": "Prepare Base64",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -40,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://queue.fal.run/fal-ai/kling-video/v1.5/pro/image-to-video",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Key b457075b-89c3-4986-a68a-09753f374c83:dc4f7f9452471d2de92985c02ed5cdae"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "={{ $json.prompt }}"
+            },
+            {
+              "name": "image_url",
+              "value": "={{ $json.data_uri }}"
+            },
+            {
+              "name": "duration",
+              "value": "5"
+            },
+            {
+              "name": "aspect_ratio",
+              "value": "16:9"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ba3905df-1302-45f8-8b27-7f7eb7b18dec",
+      "name": "Start Kling",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        180,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "3fc1fb02-5d39-4276-a7a9-739f639516b9",
+      "name": "Wait Loop",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        400,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Start Kling').first().json.response_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Key b457075b-89c3-4986-a68a-09753f374c83:dc4f7f9452471d2de92985c02ed5cdae"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "984bd83d-0544-4891-b268-7a1aba338f12",
+      "name": "Check Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        620,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "1234",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "COMPLETED",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "080216af-e381-44f7-9049-bdea55c0eb5e",
+      "name": "Is Finished?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        840,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.output.url }}",
+        "options": {}
+      },
+      "id": "232da82c-1684-4fc1-94f3-90798554b843",
+      "name": "Download Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1320,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// VERSIONE DEBUG: Valori fissi per testare solo la connessione\nreturn {\n  json: {\n    session_id: \"test_session_123\",  // Valore finto\n    image_filename: \"video_test.mp4\" // Valore finto\n  },\n  // Questo è l'importante: passiamo il file video scaricato dal nodo precedente\n  binary: items[0].binary \n};"
+      },
+      "id": "1d386c4d-e097-433b-a308-bbbc8ccd2ec5",
+      "name": "Restore Info",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-video",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "01f97c0a-8707-447d-b680-9535f6cc6818",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        420
+      ],
+      "webhookId": "005844b0-3fd8-40ec-a828-c0f1b6d44b33"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Salva video": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Prepare Base64",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Base64": {
+      "main": [
+        [
+          {
+            "node": "Start Kling",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Kling": {
+      "main": [
+        [
+          {
+            "node": "Wait Loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Loop": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status": {
+      "main": [
+        [
+          {
+            "node": "Is Finished?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Finished?": {
+      "main": [
+        [
+          {
+            "node": "Download Video",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait Loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Video": {
+      "main": [
+        [
+          {
+            "node": "Restore Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Info": {
+      "main": [
+        [
+          {
+            "node": "Salva video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "26325d8e-d84f-4324-a32a-96cf4dc49ee9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "673306e7388f18e9a5fc3387406046bc8324320491e8edb1dccac5593575f075"
+  },
+  "id": "q9aKofyvAClcN9eZ",
+  "tags": []
+}

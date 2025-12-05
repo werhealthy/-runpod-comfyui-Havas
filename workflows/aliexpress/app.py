@@ -78,33 +78,65 @@ def generate_images(image_path, prompt, progress=gr.Progress()):
         return [], None, [], f"❌ Errore: {str(e)}"
 
 # ========================================
-# 🎬 STEP 2: VIDEO BASE
+# 🎬 STEP 2: VIDEO BASE (AGGIORNATO PER PROMPT API)
 # ========================================
 
-def generate_video(selected_file, session_id, progress=gr.Progress()):
-    if not selected_file: return None, "❌ Nessuna selezione"
+def generate_video_base(selected_file, session_id, video_prompt, progress=gr.Progress()):
+    """
+    Funzione di generazione Video Base che invia il Prompt alla Webhook N8n (Fal.ai).
+    """
+    # 1. Pulizia e Controlli
+    if not selected_file:
+        return None, "⚠️ Errore: Nessuna immagine selezionata."
     
+    # 2. Estrazione del percorso e del nome
+    # 'selected_file' in questo punto contiene il percorso completo /tmp/.../nome.png
     image_path = selected_file
-    if hasattr(selected_file, 'value'): 
-         val = selected_file.value
-         image_path = val.get('image', {}).get('path') if isinstance(val, dict) else val.get('name')
+    clean_filename = os.path.basename(image_path)
+    
+    # 3. Gestione Sessione (per il salvataggio del video)
+    # Se session_id è None (memoria persa), usiamo una stringa vuota per cercare nella root (vedi fix N8n)
+    if not session_id:
+        print("⚠️ Session ID mancante. Uso ID temporaneo per l'output.")
+        session_id = "" 
+    
+    if not clean_filename:
+        return None, "❌ Errore: Nome file non valido."
+    
+    # 4. Payload per N8n (invia Promt Video a Fal.ai)
+    payload = {
+        "session_id": session_id,
+        # La funzione N8n si aspetta solo il nome pulito, il percorso completo non serve più
+        "image_filename": clean_filename,
+        "prompt": video_prompt  # <--- NUOVO PROMPT VIDEO
+    }
 
     try:
-        output_name = f"video_{int(time.time())}.mp4"
         session = create_session()
-        response = session.post(N8N_VIDEO_URL, json={
-            "image_path": image_path, "output_name": output_name, "session_id": session_id
-        }, timeout=300)
+        response = session.post(N8N_VIDEO_URL, json=payload, timeout=600)
         
-        expected = os.path.join(BASE_OUTPUT_DIR, "output", output_name)
-        time.sleep(1)
-        if os.path.exists(expected): return expected, "✅ Video Base OK"
+        if response.status_code != 200:
+            return None, f"❌ Errore n8n: {response.text}"
+            
+        # 5. Verifica e Salvataggio (Assumiamo che il video ritorni in formato binario/file)
+        expected_output_name = f"video_{clean_filename}" # Nome con suffisso video_
+        
+        # Salvataggio del video scaricato nel percorso corretto
+        base_dir = os.path.join(BASE_OUTPUT_DIR, "output")
+        output_dir = os.path.join(base_dir, session_id) if session_id else base_dir
+        os.makedirs(output_dir, exist_ok=True)
+        
+        final_video_path = os.path.join(output_dir, expected_output_name)
+        
         if len(response.content) > 1000:
-            with open(expected, 'wb') as f: f.write(response.content)
-            return expected, "✅ Video Scaricato"
-        return None, "❌ Video non trovato"
+            with open(final_video_path, 'wb') as f:
+                f.write(response.content)
+            return final_video_path, f"✅ Video Scaricato ({len(response.content)//1024} KB)"
+        
+        return None, "❌ Video non ricevuto da N8n. Controlla i log."
+        
     except Exception as e:
-        return None, f"❌ Errore: {str(e)}"
+        return None, f"❌ Errore API: {str(e)}"
 
 # ========================================
 # ✍️ STEP 3: VIDEO FINALE (Con Calcolo Larghezza)
@@ -184,11 +216,10 @@ with gr.Blocks(title="AI Campaign Manager") as demo:
     
     with gr.Tabs() as main_tabs:
         
-        # TAB 1
+        # TAB 1: Varianti
         with gr.Tab("1. Varianti", id=0):
             with gr.Row():
                 with gr.Column(scale=1):
-                    # NOMI VARIABILI CORRETTI QUI
                     inp_img = gr.Image(type="filepath", height=300, label="Input Immagine")
                     inp_prompt = gr.Textbox(label="Prompt", lines=3)
                     btn_gen_img = gr.Button("🚀 Genera", variant="primary")
@@ -201,27 +232,37 @@ with gr.Blocks(title="AI Campaign Manager") as demo:
                     selected_preview = gr.Image(label="Selezionata", interactive=False, height=300)
                     btn_confirm = gr.Button("✅ Conferma e Vai a Video", variant="primary")
 
-        # TAB 2
+        # TAB 2: Video Base (CORRETTO)
         with gr.Tab("2. Video Base", id=1):
             with gr.Row():
                 with gr.Column(scale=1):
-                    final_preview = gr.Image(interactive=False, height=300, label="Anteprima")
+                    # Preview interattiva per passare il file
+                    final_preview = gr.Image(interactive=True, height=300, label="Anteprima", type="filepath")
+                    
+                    # Prompt Video
+                    video_prompt_input = gr.Textbox(
+                        label="Prompt per il Video",
+                        placeholder="Es: Zoom lento, movimento laterale...",
+                        value="Slow cinematic zoom in, high quality product video, 4k, advertising style",
+                        lines=3
+                    )
+                    
                     btn_gen_vid = gr.Button("✨ Genera Video Base", variant="primary")
+                
                 with gr.Column(scale=2):
                     out_video = gr.Video(height=450, label="Video Base", interactive=False)
                     video_status = gr.Markdown("")
             
             with gr.Row(visible=False) as video_confirm_section:
-                 btn_confirm_video = gr.Button("✅ Video OK? Vai ai Testi", variant="primary")
+                btn_confirm_video = gr.Button("✅ Video OK? Vai ai Testi", variant="primary")
 
-        # TAB 3
+        # TAB 3: Testi
         with gr.Tab("3. Testi", id=2):
             with gr.Row():
                 with gr.Column(scale=1):
                     gr.Markdown("### ✍️ Storytelling")
                     inp_video_step3 = gr.Video(label="Base", interactive=False, visible=True, height=200)
 
-                    # RIGHE ESPLICITE (Per evitare NameError)
                     with gr.Group():
                         gr.Markdown("#### 📝 Frasi (Sequenza)")
                         with gr.Row(visible=True) as r1:
@@ -242,7 +283,6 @@ with gr.Blocks(title="AI Campaign Manager") as demo:
                         
                         btn_add_row = gr.Button("+ Aggiungi Frase", size="sm")
                         
-                        # LOGICA VISIBILITÀ RIGHE
                         def add_row_logic(count):
                             c = min(count + 1, 5)
                             return (c, 
@@ -266,6 +306,93 @@ with gr.Blocks(title="AI Campaign Manager") as demo:
                 with gr.Column(scale=2):
                     out_final_video = gr.Video(label="Finale", height=450)
                     final_status = gr.Markdown("")
+
+    # ========================================
+    # EVENTI
+    # ========================================
+    
+    # 1. Genera Immagini
+    btn_gen_img.click(
+        fn=generate_images, 
+        inputs=[inp_img, inp_prompt], 
+        outputs=[out_gallery, state_session_id, state_filenames, status_msg]
+    )
+    
+    # 2. Selezione Immagine
+    def on_select(filenames, evt: gr.SelectData):
+        if not filenames: return None, gr.update(visible=False), None
+        s = filenames[evt.index]
+        return s, gr.update(visible=True), s
+
+    out_gallery.select(
+        fn=on_select, 
+        inputs=[state_filenames], 
+        outputs=[state_selected_file, confirm_section, selected_preview]
+    )
+    
+    # 3. Conferma Immagine (Passa al Tab 2)
+    def confirm_step1(selected_file):
+        if not selected_file: return None, "Seleziona immagine!", gr.Tabs()
+        return selected_file, "Clicca 'Genera Video Base' per iniziare.", gr.Tabs(selected=1)
+
+    btn_confirm.click(
+        fn=confirm_step1, 
+        inputs=[state_selected_file], 
+        outputs=[final_preview, video_status, main_tabs]
+    )
+
+    # --- Sincronizzazione Anteprima Tab 1 -> Tab 2 ---
+    selected_preview.change(
+        fn=lambda x: x,
+        inputs=[selected_preview],
+        outputs=[final_preview]
+    )
+    
+    # 4. Genera Video Base (LOGICA CORRETTA)
+    def on_video_generated(video_path, status):
+        return gr.update(visible=bool(video_path))
+
+    gen_vid_event = btn_gen_vid.click(
+        fn=generate_video_base,  # Assicurati che la funzione in alto si chiami così!
+        inputs=[state_selected_file, state_session_id, video_prompt_input], 
+        outputs=[out_video, video_status]
+    )
+    
+    gen_vid_event.then(
+        fn=on_video_generated, 
+        inputs=[out_video, video_status], 
+        outputs=[video_confirm_section]
+    )
+    
+    # 5. Conferma Video (Passa al Tab 3)
+    def confirm_step2(video_path):
+        if not video_path: return None, gr.Tabs()
+        return video_path, gr.Tabs(selected=2)
+
+    btn_confirm_video.click(
+        fn=confirm_step2, 
+        inputs=[out_video], 
+        outputs=[inp_video_step3, main_tabs]
+    )
+    
+    # 6. Render Finale
+    btn_render_final.click(
+        fn=generate_final_video, 
+        inputs=[
+            inp_video_step3, 
+            l1_txt, l1_font, 
+            l2_txt, l2_font, 
+            l3_txt, l3_font, 
+            l4_txt, l4_font, 
+            l5_txt, l5_font, 
+            sl_x_head, sl_y_head, 
+            txt_foot, sl_x_foot, sl_y_foot
+        ],
+        outputs=[out_final_video, final_status]
+    )
+
+if __name__ == "__main__":
+    demo.launch(server_name="0.0.0.0", server_port=7860, share=True)
 
     # ========================================
     # EVENTI (COLLEGAMENTI CORRETTI)
