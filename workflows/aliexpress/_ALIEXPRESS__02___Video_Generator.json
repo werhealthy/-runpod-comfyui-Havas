@@ -1,5 +1,5 @@
 {
-  "name": "My workflow",
+  "name": "_ALIEXPRESS__02___Video_Generator.json",
   "nodes": [
     {
       "parameters": {
@@ -122,7 +122,37 @@
     },
     {
       "parameters": {
-        "url": "={{ $('Start Kling').first().json.response_url }}",
+        "jsCode": "// VERSIONE DEBUG: Valori fissi per testare solo la connessione\nreturn {\n  json: {\n    session_id: \"test_session_123\",  // Valore finto\n    image_filename: \"video_test.mp4\" // Valore finto\n  },\n  // Questo è l'importante: passiamo il file video scaricato dal nodo precedente\n  binary: items[0].binary \n};"
+      },
+      "id": "1d386c4d-e097-433b-a308-bbbc8ccd2ec5",
+      "name": "Restore Info",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-video",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "01f97c0a-8707-447d-b680-9535f6cc6818",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        420
+      ],
+      "webhookId": "005844b0-3fd8-40ec-a828-c0f1b6d44b33"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Start Kling').first().json.status_url }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -141,7 +171,9 @@
       "position": [
         620,
         440
-      ]
+      ],
+      "retryOnFail": false,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -177,7 +209,21 @@
     },
     {
       "parameters": {
-        "url": "={{ $json.output.url }}",
+        "url": "={{ $json.response_url }}",
+        "options": {}
+      },
+      "id": "d1750d3c-3298-400a-9c1f-08012af787a7",
+      "name": "Get video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1060,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.video.url }}",
         "options": {}
       },
       "id": "232da82c-1684-4fc1-94f3-90798554b843",
@@ -188,36 +234,6 @@
         1320,
         380
       ]
-    },
-    {
-      "parameters": {
-        "jsCode": "// VERSIONE DEBUG: Valori fissi per testare solo la connessione\nreturn {\n  json: {\n    session_id: \"test_session_123\",  // Valore finto\n    image_filename: \"video_test.mp4\" // Valore finto\n  },\n  // Questo è l'importante: passiamo il file video scaricato dal nodo precedente\n  binary: items[0].binary \n};"
-      },
-      "id": "1d386c4d-e097-433b-a308-bbbc8ccd2ec5",
-      "name": "Restore Info",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1540,
-        380
-      ]
-    },
-    {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "generate-video",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "id": "01f97c0a-8707-447d-b680-9535f6cc6818",
-      "name": "Webhook",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2,
-      "position": [
-        -720,
-        420
-      ],
-      "webhookId": "005844b0-3fd8-40ec-a828-c0f1b6d44b33"
     }
   ],
   "pinData": {},
@@ -277,46 +293,6 @@
         ]
       ]
     },
-    "Check Status": {
-      "main": [
-        [
-          {
-            "node": "Is Finished?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Is Finished?": {
-      "main": [
-        [
-          {
-            "node": "Download Video",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Wait Loop",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Download Video": {
-      "main": [
-        [
-          {
-            "node": "Restore Info",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Restore Info": {
       "main": [
         [
@@ -338,13 +314,64 @@
           }
         ]
       ]
+    },
+    "Check Status": {
+      "main": [
+        [
+          {
+            "node": "Is Finished?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Finished?": {
+      "main": [
+        [
+          {
+            "node": "Get video",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait Loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get video": {
+      "main": [
+        [
+          {
+            "node": "Download Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Video": {
+      "main": [
+        [
+          {
+            "node": "Restore Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "26325d8e-d84f-4324-a32a-96cf4dc49ee9",
+  "versionId": "69ea7763-ba3a-414c-a376-a75c78950391",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "673306e7388f18e9a5fc3387406046bc8324320491e8edb1dccac5593575f075"
