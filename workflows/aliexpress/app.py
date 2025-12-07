@@ -39,36 +39,41 @@ def create_session():
     return session
 
 # ========================================
-# 📸 STEP 1: IMMAGINI (Invariato ma pulito)
+# 📸 STEP 1: IMMAGINI (Con Barra Sincronizzata 60s)
 # ========================================
 
 def generate_images(image_path, prompt, progress=gr.Progress(track_tqdm=True)):
-    import io, base64
+    import io, base64, json
     from PIL import Image
-    import numpy as np
     import threading
+    import os
+    import time
     
-    if not image_path: return [], None, [], "⚠️ Carica immagine!"
-    if not prompt: return [], None, [], "⚠️ Scrivi prompt!"
+    # 1. Setup Iniziale
+    if not os.path.exists(BASE_OUTPUT_DIR):
+        os.makedirs(BASE_OUTPUT_DIR)
+
+    if not image_path: return [], None, [], "⚠️ Errore: Carica un'immagine!"
     
-    progress(0.01, desc="Preparazione file...")
+    # Partiamo da 0% esatto
+    progress(0.0, desc="Preparazione dati...")
     
+    # 2. Preparazione Immagine
     try:
-        # Conversione immagine locale in Base64 per inviarla a n8n
         img = Image.open(image_path)
         buffered = io.BytesIO()
         img.save(buffered, format="JPEG", quality=95)
         img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
     except Exception as e:
-        return [], None, [], f"❌ Errore img: {str(e)}"
+        return [], None, [], f"❌ Errore preparazione file: {str(e)}"
     
-    # --- CHIAMATA ASINCRONA PER UI FLUIDA ---
+    # 3. Chiamata API (Thread separato)
     api_response = {}
     
     def call_n8n():
         try:
             session = create_session()
-            # Invio JSON a n8n
+            # Timeout aumentato a 600s per sicurezza lato server
             resp = session.post(N8N_IMAGES_URL, json={"prompt": prompt, "image": img_base64}, timeout=600)
             api_response['data'] = resp
         except Exception as err:
@@ -77,70 +82,134 @@ def generate_images(image_path, prompt, progress=gr.Progress(track_tqdm=True)):
     t = threading.Thread(target=call_n8n)
     t.start()
     
-    # Simulazione progress bar basata su tempi stimati
-    current_prog = 0.0
-    while t.is_alive():
-        time.sleep(0.5)
-        if current_prog < 0.95: 
-            current_prog += 0.01
-        progress(current_prog, desc=f"Generazione Immagini... {int(current_prog*100)}%")
+    # --- BARRA DI CARICAMENTO CALIBRATA (60 SECONDI) ---
+    start_time = time.time()
+    estimated_duration = 60.0  # Durata stimata in secondi
     
-    t.join()
-    # ----------------------------------------
+    while t.is_alive():
+        # Calcoliamo quanto tempo è passato
+        elapsed = time.time() - start_time
+        
+        # Calcoliamo la percentuale (Tempo passato / 60 secondi)
+        # Esempio: se sono passati 30s, siamo al 50% (0.5)
+        current_prog = elapsed / estimated_duration
+        
+        # Blocchiamo la barra al 95% finché n8n non finisce davvero
+        # (Così non arriva mai al 100% prima che il file sia pronto)
+        if current_prog > 0.95:
+            current_prog = 0.95
+            
+        progress(current_prog, desc=f"Generazione in corso... {int(current_prog*100)}%")
+        time.sleep(0.5) # Aggiorniamo ogni mezzo secondo
+        
+    t.join() 
+    # ---------------------------------------------------
 
+    # 4. Controllo Risultato
     if 'error' in api_response:
-        return [], None, [], f"❌ Errore API: {str(api_response['error'])}"
+        return [], None, [], f"❌ Errore Connessione: {str(api_response['error'])}"
         
     response = api_response.get('data')
-    if not response or response.status_code != 200: 
-        return [], None, [], f"❌ Errore n8n: {response.text if response else 'No response'}"
+    if not response:
+        return [], None, [], "❌ Nessuna risposta dal server."
         
+    if response.status_code != 200: 
+        return [], None, [], f"❌ Errore n8n ({response.status_code}): {response.text[:100]}"
+        
+    # 5. Decodifica Immagini
     try:
-        progress(0.98, desc="Elaborazione Risposta...")
+        progress(0.97, desc="Scaricamento immagini...")
         result = response.json()
+        images_raw = result.get("images", [])
         
-        # Gestione risposta (adattare in base al vero output di n8n)
-        # Qui assumiamo che n8n restituisca una lista di immagini o path
-        # Per semplicità in debug, torniamo un placeholder se la struttura è complessa
-        # (Logica di parsing originale mantenuta per compatibilità)
+        if not images_raw:
+            return [], None, [], f"⚠️ n8n ha risposto OK, ma senza immagini."
+
         output_images = []
         filenames_list = []
-        
-        # ... (Logica di salvataggio immagini ricevute in locale per preview) ...
-        # NOTA: Qui si dovrebbero salvare i file in BASE_OUTPUT_DIR
-        
+
+        for i, item in enumerate(images_raw):
+            try:
+                b64_str = item if isinstance(item, str) else item.get('data')
+                if b64_str:
+                    img_bytes = base64.b64decode(b64_str)
+                    image = Image.open(io.BytesIO(img_bytes))
+                    output_images.append(image)
+                    
+                    fname = f"gen_{int(time.time())}_{i}.png"
+                    local_path = os.path.join(BASE_OUTPUT_DIR, fname)
+                    image.save(local_path)
+                    filenames_list.append(local_path)
+            except Exception:
+                pass 
+
+        if not output_images:
+            return [], None, [], "❌ Errore visualizzazione immagini."
+
+        # Solo alla fine andiamo al 100%
         progress(1.0, desc="Fatto!")
-        return output_images, "session_id_placeholder", filenames_list, f"✅ Generazione completata"
+        return output_images, result.get("session_id", "sess"), filenames_list, f"✅ Successo! {len(output_images)} immagini."
+        
     except Exception as e:
-        return [], None, [], f"❌ Errore Parsing: {str(e)}"
+        return [], None, [], f"❌ Errore finale: {str(e)}"
 
 # ========================================
-# 🎬 STEP 2: VIDEO BASE (MODALITÀ UNICORNO / DEBUG)
+# 🎬 STEP 2: VIDEO BASE (VERSIONE REALE CHE AGGIORNA LA MEMORIA)
 # ========================================
 
-def generate_video_base_debug(selected_file, session_id, video_prompt, progress=gr.Progress()):
-    """
-    MODALITÀ DEBUG: Ignora Fal.ai e restituisce un URL video pubblico.
-    Questo garantisce che al server Windows arrivi un URL e non un file locale.
-    """
-    print("\n🦄 [STEP 2] AVVIO MODALITÀ DEBUG (UNICORNO)")
-    print(f"   Input ignorati per test: Prompt='{video_prompt}'")
+def generate_video_base(selected_file, session_id, video_prompt, progress=gr.Progress(track_tqdm=True)):
+    print(f"🚀 [STEP 2] Avvio Generazione Video FAL...")
     
-    progress(0.2, desc="Contattando server video...")
-    time.sleep(1.5) # Simuliamo latenza network
+    if not selected_file: return None, None, "⚠️ Errore: Nessuna immagine selezionata."
     
-    # URL PUBBLICO "SINGLE SOURCE OF TRUTH"
-    # Questo URL funziona ovunque: RunPod, n8n, Windows
-    video_url = DEBUG_VIDEO_URL
-    
-    print(f"✅ [STEP 2] URL Generato: {video_url}")
-    progress(1.0, desc="Video caricato!")
-    
-    # RETURN CRUCIALE:
-    # 1. video_url -> Al componente Video (Gradio lo scaricherà in cache SOLO per visualizzarlo)
-    # 2. video_url -> Allo STATO (gr.State) per preservare la stringa URL pura per lo step successivo
-    # 3. Messaggio -> Feedback utente
-    return video_url, video_url, "✅ Video Test Caricato (URL remoto pronto)"
+    # URL del Webhook di n8n (Assicurati che sia quello giusto!)
+    N8N_VIDEO_URL = "http://127.0.0.1:5678/webhook/generate-video" 
+
+    try:
+        progress(0.1, desc="Invio file a n8n...")
+        
+        # 1. Upload e Richiesta a n8n
+        # Inviamo l'immagine fisica + il prompt
+        with open(selected_file, 'rb') as f:
+            files = {'data': (os.path.basename(selected_file), f, 'image/png')}
+            data = {'prompt': video_prompt, 'session_id': session_id}
+            
+            session = create_session()
+            response = session.post(N8N_VIDEO_URL, files=files, data=data, timeout=600)
+        
+        if response.status_code != 200:
+            return None, None, f"❌ Errore n8n ({response.status_code}): {response.text}"
+            
+        # 2. LEGGIAMO L'URL VERO DI FAL.AI
+        result = response.json()
+        remote_video_url = result.get("video_url")
+        
+        if not remote_video_url:
+            return None, None, f"❌ Errore: n8n non ha restituito l'URL. Risposta: {result}"
+            
+        print(f"✅ URL VERO da passare allo Step 3: {remote_video_url}")
+        
+        # 3. Scarichiamo l'anteprima per te (solo visuale)
+        progress(0.9, desc="Scaricamento anteprima...")
+        local_filename = f"video_preview_{int(time.time())}.mp4"
+        local_path = os.path.join(BASE_OUTPUT_DIR, local_filename)
+        
+        try:
+            video_data = requests.get(remote_video_url).content
+            with open(local_path, 'wb') as f_vid:
+                f_vid.write(video_data)
+        except Exception as e:
+            print(f"⚠️ Anteprima fallita, ma URL valido: {e}")
+
+        # --- IL PUNTO CRUCIALE ---
+        # Restituiamo:
+        # 1. local_path -> Per i tuoi occhi (Player)
+        # 2. remote_video_url -> Per la Memoria (Step 3)
+        return local_path, remote_video_url, "✅ Video Generato e Pronto per il Render!"
+
+    except Exception as e:
+        print(f"❌ Errore critico: {e}")
+        return None, None, f"❌ Errore: {str(e)}"
 
 # ========================================
 # ✍️ STEP 3: VIDEO FINALE (RENDER VIA N8N -> WINDOWS)
@@ -375,11 +444,10 @@ with gr.Blocks(title="AI Campaign Manager (Debug Mode)") as demo:
     btn_confirm.click(fn=confirm_step1, inputs=[state_selected_file], outputs=[final_preview, video_status, main_tabs])
     selected_preview.change(fn=lambda x: x, inputs=[selected_preview], outputs=[final_preview])
     
-    # 2. GENERAZIONE VIDEO BASE (MODALITÀ UNICORNO/DEBUG)
+    # 2. GENERAZIONE VIDEO BASE (SCOLLEGATO IL DEBUG, COLLEGATO IL REALE)
     gen_vid_event = btn_gen_vid.click(
-        fn=generate_video_base_debug, 
+        fn=generate_video_base,  # <--- Usa la nuova funzione senza "_debug"
         inputs=[state_selected_file, state_session_id, video_prompt_input], 
-        # OUTPUT: Aggiorna il player visivo (1), lo STATO (2), e il messaggio (3)
         outputs=[out_video, state_video_url, video_status]
     )
     

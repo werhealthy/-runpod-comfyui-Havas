@@ -3,30 +3,37 @@
   "nodes": [
     {
       "parameters": {
-        "command": "={{ `ffmpeg -y -i \"${$json.body.input_video}\" -filter_complex \"\n[0:v]drawtext=fontfile='${$json.body.l1_font}':text='${$json.body.l1_text}':fontcolor=white:fontsize=45*(min((t-0.5)/0.15\\\\,1)):x=(w-text_w)/2:y=(h-text_h)*${$json.body.y_head}/100:enable='gt(t,0.5)',\n\ndrawtext=fontfile='${$json.body.l2_font}':text='${$json.body.l2_text}':fontcolor=white:fontsize=45*(min((t-1.2)/0.15\\\\,1)):x=(w-text_w)/2:y=((h-text_h)*${$json.body.y_head}/100)+55:enable='gt(t,1.2)',\n\ndrawtext=fontfile='${$json.body.l3_font}':text='${$json.body.l3_text}':fontcolor=white:fontsize=45*(min((t-1.9)/0.15\\\\,1)):x=(w-text_w)/2:y=((h-text_h)*${$json.body.y_head}/100)+110:enable='gt(t,1.9)',\n\ndrawtext=fontfile='/tmp/comfyui/TTNormsPro-Bold.ttf':text='${$json.body.text_foot}':fontcolor=0xE43225:fontsize=45*(min((t-2.5)/0.15\\\\,1)):x=(w-text_w)/2:y='h-(h-(h-text_h)*${$json.body.y_foot}/100)':enable='gt(t,2.5)'\n\" -c:v libx264 -pix_fmt yuv420p \"/tmp/comfyui/output/${$json.body.output_name}\"` }}"
-      },
-      "id": "40edda2f-f64d-44af-9de1-59fae62e7750",
-      "name": "Execute Command",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [
-        980,
-        460
-      ]
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "{\n  \"success\": true,\n  \"video_path\": \"/tmp/comfyui/output/{{ $('Webhook').item.json.body.output_name }}\"\n}",
+        "respondWith": "binary",
+        "responseDataSource": "set",
         "options": {}
       },
-      "id": "ee5daba7-7815-48e8-a2f3-eea865e908dc",
+      "id": "f1011134-6681-4070-a494-5cda9a957414",
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        1160,
-        460
+        2040,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://dischargeable-noninterdependent-sherry.ngrok-free.dev/render-video",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "allowUnauthorizedCerts": false
+        }
+      },
+      "id": "c80d537c-777e-47b1-968f-b72b80c9620c",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1640,
+        260
       ]
     },
     {
@@ -36,20 +43,33 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "9a6e6329-e246-4da8-9bb6-0cbf9f1fd2e5",
+      "id": "6c6db777-cca0-4eef-a0db-c7d9445d6dfe",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        760,
-        460
+        1040,
+        260
       ],
       "webhookId": "74262d2a-1428-49ad-afc6-513814465491"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recuperiamo i dati che arrivano dal Webhook (Gradio)\n// A volte sono dentro 'body', a volte nella root. Controlliamo.\nconst inputData = items[0].json.body || items[0].json;\n\n// Creiamo l'oggetto pulito per Windows\nconst payload = {\n  video_url: inputData.video_url,\n  product_name: inputData.product_name,\n  // Passiamo la lista hero_lines direttamente\n  hero_lines: inputData.hero_lines,\n  // Forziamo la conversione in numeri (se vuoti, usa i default)\n  x_head: Number(inputData.x_head || 50),\n  y_head: Number(inputData.y_head || 15)\n};\n\nreturn {\n  json: payload\n};"
+      },
+      "id": "b1f5f0e8-b712-453a-b36a-d5857e9da6ae",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1260,
+        260
+      ]
     }
   ],
   "pinData": {},
   "connections": {
-    "Execute Command": {
+    "HTTP Request": {
       "main": [
         [
           {
@@ -64,7 +84,18 @@
       "main": [
         [
           {
-            "node": "Execute Command",
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
             "type": "main",
             "index": 0
           }
@@ -76,11 +107,11 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "e2d038b9-e711-4a08-a014-5350e77984f3",
+  "versionId": "91aace33-a550-4cac-b314-b16214bd7663",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "673306e7388f18e9a5fc3387406046bc8324320491e8edb1dccac5593575f075"
   },
-  "id": "2TOZkvwmM6Gohdim",
+  "id": "fPq4mAzVqeZuypW9",
   "tags": []
 }
