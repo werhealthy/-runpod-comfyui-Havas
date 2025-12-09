@@ -4,7 +4,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\n  \"video_url\": \"{{ $json.video.url }}\"\n}",
+        "responseBody": "={\n  \"video_url\": \"{{ $('Get video').first().json.video.url }}\" \n}",
         "options": {}
       },
       "id": "b94acde9-6dc0-42b5-be44-5682857316a4",
@@ -14,6 +14,21 @@
       "position": [
         3160,
         320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/tmp/comfyui/output/video_{{$json.image_filename}}.mp4",
+        "options": {}
+      },
+      "id": "812da005-d4a6-4901-9986-82ddbedd25e4",
+      "name": "Salva video",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        2740,
+        360
       ]
     },
     {
@@ -32,7 +47,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://queue.fal.run/fal-ai/fast-svd",
+        "url": "https://queue.fal.run/fal-ai/kling-video/v1.5/pro/image-to-video",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -50,8 +65,20 @@
         "bodyParameters": {
           "parameters": [
             {
+              "name": "prompt",
+              "value": "={{ $json.prompt }}"
+            },
+            {
               "name": "image_url",
               "value": "={{ $json.data_uri }}"
+            },
+            {
+              "name": "duration",
+              "value": "5"
+            },
+            {
+              "name": "aspect_ratio",
+              "value": "16:9"
             }
           ]
         },
@@ -68,7 +95,7 @@
     },
     {
       "parameters": {
-        "amount": 5,
+        "amount": 30,
         "unit": "seconds"
       },
       "id": "3fc1fb02-5d39-4276-a7a9-739f639516b9",
@@ -78,6 +105,19 @@
       "position": [
         400,
         440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// VERSIONE DEBUG: Valori fissi per testare solo la connessione\nreturn {\n  json: {\n    session_id: \"test_session_123\",  // Valore finto\n    image_filename: \"video_test.mp4\" // Valore finto\n  },\n  // Questo è l'importante: passiamo il file video scaricato dal nodo precedente\n  binary: items[0].binary \n};"
+      },
+      "id": "1d386c4d-e097-433b-a308-bbbc8ccd2ec5",
+      "name": "Restore Info",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        380
       ]
     },
     {
@@ -167,10 +207,35 @@
         1060,
         340
       ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.video.url }}",
+        "options": {}
+      },
+      "id": "232da82c-1684-4fc1-94f3-90798554b843",
+      "name": "Download Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1320,
+        380
+      ]
     }
   ],
   "pinData": {},
   "connections": {
+    "Salva video": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Prepare Base64": {
       "main": [
         [
@@ -198,6 +263,17 @@
         [
           {
             "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Info": {
+      "main": [
+        [
+          {
+            "node": "Salva video",
             "type": "main",
             "index": 0
           }
@@ -248,7 +324,18 @@
       "main": [
         [
           {
-            "node": "Respond to Webhook",
+            "node": "Download Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Video": {
+      "main": [
+        [
+          {
+            "node": "Restore Info",
             "type": "main",
             "index": 0
           }
@@ -260,7 +347,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "a949d4dd-cff8-46d9-bd80-e531fc713264",
+  "versionId": "52d68772-91b7-4b46-ae80-62a69d36bac8",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "673306e7388f18e9a5fc3387406046bc8324320491e8edb1dccac5593575f075"
