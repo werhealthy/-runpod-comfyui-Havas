@@ -82,6 +82,53 @@ echo "🎥 Installazione Video Assets..."
 wget -c "$FONT_BASE_URL/output.mov" -O "$COMFY_DIR/outro.mp4"
 
 ###############################################
+# 2b. INSTALLAZIONE MODELLI VIDEO (Wan 2.1)
+###############################################
+
+echo "📥 Installazione modelli Wan 2.1 Video..."
+
+# --- 1. Base Model (Checkpoint) ---
+# Scarichiamo la versione FP8 scalata (14B) ufficiale di Comfy-Org
+# Nota: Il workflow cerca "wan2.2_t2v_low_noise..." ma la base ufficiale è 2.1.
+# La "2.2" lightx2v è una LoRA. Scarichiamo la base compatibile.
+mkdir -p "$MODEL_DIR/diffusion_models/wan"
+wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_14B_fp8_e4m3fn.safetensors" \
+  -O "$MODEL_DIR/diffusion_models/wan/wan2.1_t2v_14B_fp8_e4m3fn.safetensors"
+
+# --- 2. Text Encoder (T5 XXL) ---
+# Usato dal nodo CLIPLoader
+wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_Repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" \
+  -O "$MODEL_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors"
+
+# --- 3. VAE ---
+# Usato dal nodo VAELoader
+mkdir -p "$MODEL_DIR/vae/wan"
+wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_Repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors" \
+  -O "$MODEL_DIR/vae/wan/wan_2.1_vae.safetensors"
+
+# --- 4. LoRAs (Lightx2v Lightning & Distill) ---
+# Scarichiamo le LoRA specifiche menzionate nelle note del workflow
+# Queste trasformano il modello base in "Lightning" (4 step)
+mkdir -p "$MODEL_DIR/loras/wan"
+
+# LoRA 1: Lightx2v Distill Rank32
+wget -c --show-progress "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_T2V_14B_lightx2v_cfg_step_distill_lora_rank32.safetensors" \
+  -O "$MODEL_DIR/loras/wan/Wan21_T2V_14B_lightx2v_cfg_step_distill_lora_rank32.safetensors"
+
+# LoRA 2: Wan 2.2 Lightning (Seko V1.1)
+# Attenzione: Il repo ha file separati per Low Noise e High Noise. Li scarico entrambi.
+wget -c --show-progress "https://huggingface.co/lightx2v/Wan2.2-Lightning/resolve/main/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors" \
+  -O "$MODEL_DIR/loras/wan/Wan2.2_Lightning_LowNoise.safetensors"
+
+wget -c --show-progress "https://huggingface.co/lightx2v/Wan2.2-Lightning/resolve/main/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors" \
+  -O "$MODEL_DIR/loras/wan/Wan2.2_Lightning_HighNoise.safetensors"
+
+# --- 5. Upscale Model ---
+# Per il nodo ImageUpscaleWithModel (generalmente 4x-UltraSharp)
+wget -c --show-progress "https://huggingface.co/lokiz/4x-Ultrasharp/resolve/main/4x-UltraSharp.pth" \
+  -O "$MODEL_DIR/upscale_models/4x-UltraSharp.pth"
+
+###############################################
 # 3. INSTALLAZIONE CUSTOM NODES
 ###############################################
 
