@@ -92,7 +92,7 @@ echo "📥 Installazione modelli Wan 2.1 Video..."
 
 
 # Low Noise
-wget -c --show-progress "https://huggingface.co/ComfyOrg/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors" \
+wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors" \
   -O "$MODEL_DIR/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors"
 
 # High Noise (NUOVO)
