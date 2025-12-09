@@ -86,35 +86,51 @@ wget -c "$FONT_BASE_URL/output.mov" -O "$COMFY_DIR/outro.mp4"
 # 2b. INSTALLAZIONE MODELLI VIDEO (Wan 2.1)
 ###############################################
 
-echo "📥 Installazione modelli Wan 2.1 Video (Solo Essenziali)..."
+echo "📥 Installazione modelli Wan 2.1 Video..."
 
-# --- 1. Checkpoint (Low Noise) ---
-# Necessario per il nodo 104 del workflow
-wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors" \
+# --- 1. Checkpoints (Low & High Noise) ---
+
+
+# Low Noise
+wget -c --show-progress "https://huggingface.co/ComfyOrg/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors" \
   -O "$MODEL_DIR/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors"
 
-# --- 2. Text Encoder (UMT5 XXL) ---
-# Necessario per il nodo 7
+# High Noise (NUOVO)
+wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors" \
+  -O "$MODEL_DIR/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors"
+
+# --- 2. Text Encoder & VAE (Wan Standard) ---
+# (Se non li hai già, assicurati che ci siano. Li rimetto per sicurezza, wget -c li salta se esistono)
 wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" \
   -O "$MODEL_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors"
 
-# --- 3. VAE ---
-# Necessario per il nodo 8
 wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors" \
   -O "$MODEL_DIR/vae/wan_2.1_vae.safetensors"
 
-# --- 4. Upscale Model (UltraSharp) ---
-# Necessario per il nodo 189
-wget -c --show-progress "https://huggingface.co/Kim2091/UltraSharp/resolve/main/4x-UltraSharp.safetensors" \
-  -O "$MODEL_DIR/upscale_models/4x-UltraSharp.safetensors"
+# --- 3. LoRAs (Wan Video) ---
 
-# Wan Lightning Low Noise (per velocizzare a 4 step)
+# Wan Video Distill (Kijai) (NUOVO LINK)
+wget -c --show-progress "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_T2V_14B_lightx2v_cfg_step_distill_lora_rank32.safetensors?download=true" \
+  -O "$MODEL_DIR/loras/WanVideo_comfy.safetensors"
+
+# Instareal High & Low (NUOVO)
+wget -c --show-progress "https://huggingface.co/Patarapoom/model/resolve/main/Instareal_high.safetensors" \
+  -O "$MODEL_DIR/loras/Instareal_high.safetensors"
+
+wget -c --show-progress "https://huggingface.co/Patarapoom/model/resolve/main/Instareal_low.safetensors" \
+  -O "$MODEL_DIR/loras/Instareal_low.safetensors"
+
+# (Mantieni anche le precedenti se servono ancora, es: Lenovo UltraReal e Lightning)
+wget -c --show-progress "https://civitai.com/api/download/models/2299345?type=Model&format=SafeTensor" \
+  -O "$MODEL_DIR/loras/lenovo_ultrareal.safetensors"
+
 wget -c --show-progress "https://huggingface.co/lightx2v/Wan2.2-Lightning/resolve/main/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors?download=true" \
   -O "$MODEL_DIR/loras/Wan2.2-Lightning_low_noise_model.safetensors"
 
-# Lenovo UltraReal (Citato esplicitamente nella nota del workflow)
-wget -c --show-progress "https://civitai.com/api/download/models/2299345?type=Model&format=SafeTensor" \
-  -O "$MODEL_DIR/loras/lenovo_ultrareal.safetensors"
+# --- 4. Upscale Model (UltraSharp) ---
+wget -c --show-progress "https://huggingface.co/Kim2091/UltraSharp/resolve/main/4x-UltraSharp.safetensors" \
+  -O "$MODEL_DIR/upscale_models/4x-UltraSharp.safetensors"
+
 
 ###############################################
 # 3. INSTALLAZIONE CUSTOM NODES
@@ -131,6 +147,11 @@ CUSTOM_NODES=(
   "ComfyUI_Comfyroll_CustomNodes|https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes.git"
   "Comfyui-QwenEditUtils|https://github.com/lrzjason/Comfyui-QwenEditUtils.git"
   "was-node-suite-comfyui|https://github.com/ltdrdata/was-node-suite-comfyui.git"
+  "ComfyUI_UltimateSDUpscale|https://github.com/ssitu/ComfyUI_UltimateSDUpscale.git"
+  "ComfyUI-VideoHelperSuite|https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git"
+  "ComfyUI-Frame-Interpolation|https://github.com/Fannovel16/ComfyUI-Frame-Interpolation.git"
+  "RES4LYF|https://github.com/ClownsharkBatwing/RES4LYF.git"
+  "comfy-image-saver|https://github.com/giriss/comfy-image-saver.git"
 )
 
 for entry in "${CUSTOM_NODES[@]}"; do
