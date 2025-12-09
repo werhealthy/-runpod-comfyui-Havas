@@ -40,11 +40,9 @@ BASE_REPO="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/re
 echo "📄 Copio workflow JSON (AliExpress Originale)..."
 curl -fSL "$BASE_REPO/aliexpress.json" -o "$WORKFLOWS_DIR/aliexpress.json"
 
-echo "📄 Copio workflow JSON (Wan 2.2 Video ADV)..."
-# Assumiamo che il file sia stato caricato nel repo con lo stesso nome
-curl -fSL "$BASE_REPO/251007_MICKMUMPITZ_WAN-2-2-VID_ADV.json" -o "$WORKFLOWS_DIR/wan_video_adv.json"
 
-echo "✔️ Workflow copiati in $WORKFLOWS_DIR/"
+
+echo "✔️ Workflow copiato in $WORKFLOWS_DIR/"
 
 ###############################################
 # 2. INSTALLAZIONE MODELLI
@@ -85,61 +83,6 @@ echo "🎥 Installazione Video Assets..."
 # Scarica 'output.mov' e lo salva come 'outro.mp4' nella cartella di ComfyUI
 wget -c "$FONT_BASE_URL/output.mov" -O "$COMFY_DIR/outro.mp4"
 
-###############################################
-# 2b. INSTALLAZIONE MODELLI VIDEO (Wan 2.1)
-###############################################
-
-echo "📥 Installazione modelli Wan 2.1 Video (Havas Repo)..."
-
-# --- 1. Checkpoints (Low & High Noise) ---
-# Il JSON cerca in "wan\..." quindi creiamo la cartella "wan"
-mkdir -p "$MODEL_DIR/diffusion_models/wan"
-
-# Low Noise (Nome file e path ESATTO richiesto dal JSON)
-wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors" \
-  -O "$MODEL_DIR/diffusion_models/wan/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors"
-
-# High Noise (Nome file e path ESATTO richiesto dal JSON)
-wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors" \
-  -O "$MODEL_DIR/diffusion_models/wan/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors"
-
-# --- 2. Text Encoder (UMT5 XXL) ---
-# Il JSON cerca "umt5_xxl_..." SENZA cartella wan, quindi lo mettiamo nella root di text_encoders
-wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" \
-  -O "$MODEL_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors"
-
-# --- 3. VAE ---
-# Il JSON cerca "wan\wan_2.1_vae...", quindi cartella "wan"
-mkdir -p "$MODEL_DIR/vae/wan"
-wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors" \
-  -O "$MODEL_DIR/vae/wan/wan_2.1_vae.safetensors"
-
-# --- 4. LoRAs (Wan Video) ---
-# Se il JSON usa lora dentro "wan\", mettiamole lì.
-mkdir -p "$MODEL_DIR/loras/wan"
-
-# Wan Video Distill (Kijai) -> Nome file ESATTO richiesto dal JSON se presente, altrimenti nome standard
-wget -c --show-progress "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_T2V_14B_lightx2v_cfg_step_distill_lora_rank32.safetensors?download=true" \
-  -O "$MODEL_DIR/loras/wan/Wan21_T2V_14B_lightx2v_cfg_step_distill_lora_rank32.safetensors"
-
-# Instareal High & Low
-wget -c --show-progress "https://huggingface.co/Patarapoom/model/resolve/main/Instareal_high.safetensors" \
-  -O "$MODEL_DIR/loras/wan/Instareal_high.safetensors"
-
-wget -c --show-progress "https://huggingface.co/Patarapoom/model/resolve/main/Instareal_low.safetensors" \
-  -O "$MODEL_DIR/loras/wan/Instareal_low.safetensors"
-
-# Lenovo UltraReal (CivitAI)
-wget -c --show-progress "https://civitai.com/api/download/models/2299345?type=Model&format=SafeTensor" \
-  -O "$MODEL_DIR/loras/wan/lenovo_ultrareal.safetensors"
-
-# Lightning Low Noise
-wget -c --show-progress "https://huggingface.co/lightx2v/Wan2.2-Lightning/resolve/main/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors?download=true" \
-  -O "$MODEL_DIR/loras/wan/Wan2.2-Lightning_low_noise_model.safetensors"
-
-# --- 5. Upscale Model (UltraSharp) ---
-wget -c --show-progress "https://huggingface.co/Kim2091/UltraSharp/resolve/main/4x-UltraSharp.safetensors" \
-  -O "$MODEL_DIR/upscale_models/4x-UltraSharp.safetensors"
 
 ###############################################
 # 3. INSTALLAZIONE CUSTOM NODES
