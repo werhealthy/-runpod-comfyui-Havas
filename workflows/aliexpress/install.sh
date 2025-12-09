@@ -32,16 +32,19 @@ pip install hf_transfer huggingface_hub
 export HF_HUB_ENABLE_HF_TRANSFER=1
 
 ###############################################
-# 1. COPIA DEL FILE JSON DEL WORKFLOW
+# 1. COPIA DEI FILE JSON DEL WORKFLOW
 ###############################################
 
-WORKFLOW_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress/aliexpress.json"
+BASE_REPO="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress"
 
-echo "📄 Copio workflow JSON..."
-curl -fSL "$WORKFLOW_URL" -o "$WORKFLOWS_DIR/aliexpress.json"
+echo "📄 Copio workflow JSON (AliExpress Originale)..."
+curl -fSL "$BASE_REPO/aliexpress.json" -o "$WORKFLOWS_DIR/aliexpress.json"
 
-echo "✔️ Workflow copiato in $WORKFLOWS_DIR/aliexpress.json"
+echo "📄 Copio workflow JSON (Wan 2.2 Video ADV)..."
+# Assumiamo che il file sia stato caricato nel repo con lo stesso nome
+curl -fSL "$BASE_REPO/251007_MICKMUMPITZ_WAN-2-2-VID_ADV.json" -o "$WORKFLOWS_DIR/wan_video_adv.json"
 
+echo "✔️ Workflow copiati in $WORKFLOWS_DIR/"
 
 ###############################################
 # 2. INSTALLAZIONE MODELLI
