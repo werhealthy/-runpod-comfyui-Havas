@@ -185,6 +185,12 @@ EOF
 
 chmod +x /usr/local/bin/run-aliexpress-frontend
 
+# --- SCARICA SHORTCUTS NOTEBOOK ---
+NOTEBOOK_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress/Shortcuts.ipynb"
+echo "📥 Scarico Shortcuts.ipynb..."
+# Lo salviamo direttamente nella root di ComfyUI così Jupyter lo vede subito
+curl -fSL "$NOTEBOOK_URL" -o "$COMFY_DIR/Shortcuts.ipynb" || echo "⚠️ Errore download Shortcuts.ipynb"
+
 ###############################################
 # 5. RIAVVIO AUTOMATICO COMFYUI
 ###############################################
