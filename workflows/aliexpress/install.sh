@@ -90,7 +90,7 @@ echo "📥 Installazione modelli Wan 2.1 Video (Solo Essenziali)..."
 # --- 1. Checkpoint (Low Noise) ---
 # Necessario per il nodo 104 del workflow
 mkdir -p "$MODEL_DIR/diffusion_models/wan"
-wget -c --show-progress "https://huggingface.co/ComfyOrg/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors" \
+wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors" \
   -O "$MODEL_DIR/diffusion_models/wan/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors"
 
 # --- 2. Text Encoder (UMT5 XXL) ---
@@ -108,9 +108,6 @@ wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repack
 # Necessario per il nodo 189
 wget -c --show-progress "https://huggingface.co/Kim2091/UltraSharp/resolve/main/4x-UltraSharp.safetensors" \
   -O "$MODEL_DIR/upscale_models/4x-UltraSharp.safetensors"
-
-# --- 5. LoRAs (Specificate nel Workflow) ---
-mkdir -p "$MODEL_DIR/loras/wan"
 
 # Wan Lightning Low Noise (per velocizzare a 4 step)
 wget -c --show-progress "https://huggingface.co/lightx2v/Wan2.2-Lightning/resolve/main/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors?download=true" \
