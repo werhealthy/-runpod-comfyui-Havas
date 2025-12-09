@@ -15,6 +15,7 @@ mkdir -p \
   "$MODEL_DIR/text_encoders" \
   "$MODEL_DIR/vae" \
   "$MODEL_DIR/loras" \
+  "$MODEL_DIR/loras" \
   "$MODEL_DIR/checkpoints" \
   "$CUSTOM_NODES_DIR" \
   "$WORKFLOWS_DIR"
@@ -89,9 +90,8 @@ echo "📥 Installazione modelli Wan 2.1 Video (Solo Essenziali)..."
 
 # --- 1. Checkpoint (Low Noise) ---
 # Necessario per il nodo 104 del workflow
-mkdir -p "$MODEL_DIR/diffusion_models/wan"
 wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors" \
-  -O "$MODEL_DIR/diffusion_models/wan/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors"
+  -O "$MODEL_DIR/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors"
 
 # --- 2. Text Encoder (UMT5 XXL) ---
 # Necessario per il nodo 7
@@ -100,9 +100,8 @@ wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repack
 
 # --- 3. VAE ---
 # Necessario per il nodo 8
-mkdir -p "$MODEL_DIR/vae/wan"
 wget -c --show-progress "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors" \
-  -O "$MODEL_DIR/vae/wan/wan_2.1_vae.safetensors"
+  -O "$MODEL_DIR/vae/wan_2.1_vae.safetensors"
 
 # --- 4. Upscale Model (UltraSharp) ---
 # Necessario per il nodo 189
@@ -111,11 +110,11 @@ wget -c --show-progress "https://huggingface.co/Kim2091/UltraSharp/resolve/main/
 
 # Wan Lightning Low Noise (per velocizzare a 4 step)
 wget -c --show-progress "https://huggingface.co/lightx2v/Wan2.2-Lightning/resolve/main/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors?download=true" \
-  -O "$MODEL_DIR/loras/wan/Wan2.2-Lightning_low_noise_model.safetensors"
+  -O "$MODEL_DIR/loras/Wan2.2-Lightning_low_noise_model.safetensors"
 
 # Lenovo UltraReal (Citato esplicitamente nella nota del workflow)
 wget -c --show-progress "https://civitai.com/api/download/models/2299345?type=Model&format=SafeTensor" \
-  -O "$MODEL_DIR/loras/wan/lenovo_ultrareal.safetensors"
+  -O "$MODEL_DIR/loras/lenovo_ultrareal.safetensors"
 
 ###############################################
 # 3. INSTALLAZIONE CUSTOM NODES
