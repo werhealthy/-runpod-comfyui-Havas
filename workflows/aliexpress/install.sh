@@ -420,15 +420,7 @@ if [ -f "$N8N_WF_DIR/_ALIEXPRESS__03___Final_Composer.json" ]; then
 fi
 
 ###############################################
-# 9. AVVIO AUTOMATICO N8N
-###############################################
-
-echo "🚀 Avvio automatico di n8n (AliExpress)..."
-nohup /usr/local/bin/run-aliexpress-n8n > /tmp/n8n.log 2>&1 &
-echo "✔️ n8n avviato in background sulla porta 5678 (log: /tmp/n8n.log)"
-
-###############################################
-# 9b. WARM-UP & AVVIO FINAL GRADIO
+# 9b. WARM-UP & AVVIO FINAL GRADIO (Robust)
 ###############################################
 
 echo "🔥 Fase Finale: Warm-up e Avvio Frontend..."
@@ -451,9 +443,29 @@ if curl -s http://127.0.0.1:8188 > /dev/null && [ -f "$WARMUP_FILE" ]; then
     curl -s -X POST http://127.0.0.1:8188/prompt -H "Content-Type: application/json" -d @/tmp/warmup_payload.json > /dev/null || true
 fi
 
-# 3. Avvio Gradio (ORA è il momento giusto, Comfy è acceso e i modelli caricano)
+# 3. Avvio Gradio (Con disown per evitare che muoia alla fine dello script)
 echo "🚀 Avvio interfaccia Gradio..."
-/usr/local/bin/run-aliexpress-frontend
+
+# Assicuriamoci che non ci siano altri Gradio appesi
+pkill -f "app.py" || true
+sleep 1
+
+# Lancia in background, redirige output, e DISOWN
+# Questo stacca il processo dalla shell corrente
+(
+  cd "/tmp/comfyui/frontends/aliexpress"
+  nohup python3 app.py > /tmp/aliexpress-frontend.log 2>&1 &
+)
+
+echo "✅ Gradio lanciato in background. Controllo log tra 2 secondi..."
+sleep 2
+
+if pgrep -f "app.py" > /dev/null; then
+    echo "✨ Gradio è ATTIVO (PID $(pgrep -f "app.py"))"
+else
+    echo "❌ Gradio NON è partito. Controlla /tmp/aliexpress-frontend.log"
+    tail -n 10 /tmp/aliexpress-frontend.log
+fi
 
 
 ###############################################
