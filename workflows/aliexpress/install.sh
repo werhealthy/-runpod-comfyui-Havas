@@ -185,9 +185,6 @@ EOF
 
 chmod +x /usr/local/bin/run-aliexpress-frontend
 
-echo "🚀 Avvio frontend AliExpress..."
-/usr/local/bin/run-aliexpress-frontend
-
 ###############################################
 # 5. RIAVVIO AUTOMATICO COMFYUI
 ###############################################
@@ -360,6 +357,35 @@ nohup /usr/local/bin/run-aliexpress-n8n > /tmp/n8n.log 2>&1 &
 echo "✔️ n8n avviato in background sulla porta 5678 (log: /tmp/n8n.log)"
 
 ###############################################
+# 9b. WARM-UP & AVVIO FINAL GRADIO
+###############################################
+
+echo "🔥 Fase Finale: Warm-up e Avvio Frontend..."
+
+# 1. Attesa ComfyUI attivo
+echo "⏳ Attendo che ComfyUI sia pronto..."
+MAX_RETRIES=60
+COUNT=0
+while ! curl -s http://127.0.0.1:8188 > /dev/null; do
+    sleep 2
+    COUNT=$((COUNT+1))
+    if [ $COUNT -ge $MAX_RETRIES ]; then break; fi
+done
+
+# 2. Warm-up (Caricamento Modelli)
+WARMUP_FILE="$WORKFLOWS_DIR/aliexpress.json"
+if curl -s http://127.0.0.1:8188 > /dev/null && [ -f "$WARMUP_FILE" ]; then
+    echo "🚀 Invio warm-up ai modelli..."
+    jq -n --slurpfile wf "$WARMUP_FILE" '{"client_id": "warmup_install", "prompt": $wf[0]}' > /tmp/warmup_payload.json
+    curl -s -X POST http://127.0.0.1:8188/prompt -H "Content-Type: application/json" -d @/tmp/warmup_payload.json > /dev/null || true
+fi
+
+# 3. Avvio Gradio (ORA è il momento giusto, Comfy è acceso e i modelli caricano)
+echo "🚀 Avvio interfaccia Gradio..."
+/usr/local/bin/run-aliexpress-frontend
+
+
+###############################################
 # 10. MESSAGGIO FINALE
 ###############################################
 
@@ -382,3 +408,4 @@ echo "     • Log Frontend: tail -f /tmp/aliexpress-frontend.log"
 echo "     • Log n8n: tail -f /tmp/n8n.log"
 echo ""
 echo "==============================================="
+
