@@ -83,6 +83,15 @@ echo "🎥 Installazione Video Assets..."
 # Scarica 'output.mov' e lo salva come 'outro.mp4' nella cartella di ComfyUI
 wget -c "$FONT_BASE_URL/output.mov" -O "$COMFY_DIR/outro.mp4"
 
+echo "🔧 Fix dipendenze Numpy/OpenCV..."
+# Disinstalla versioni conflittuali
+pip uninstall -y numpy opencv-python opencv-python-headless opencv-contrib-python
+
+# Installa versioni compatibili (Numpy 1.26.4 e OpenCV che lo supporta ancora)
+pip install "numpy<2.0.0" "opencv-python-headless<4.10" "opencv-python<4.10"
+
+# Installa CuPy compatibile
+pip install cupy-cuda12x
 
 ###############################################
 # 3. INSTALLAZIONE CUSTOM NODES
