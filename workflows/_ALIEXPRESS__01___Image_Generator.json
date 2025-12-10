@@ -1,0 +1,437 @@
+{
+  "name": "_ALIEXPRESS__01___Image_Generator.json",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kg8nnxtvy71gpn-8188.proxy.runpod.net/prompt",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"prompt\": {\n    \"1\": {\n      \"inputs\": {\n        \"prompt\": \"{{ $json.prompt }}\",\n        \"target_size\": 1024,\n        \"target_vl_size\": 392,\n        \"upscale_method\": \"lanczos\",\n        \"crop_method\": \"center\",\n        \"instruction\": \"Describe the key features of the input image (color, shape, size, texture, objects, background), then explain how the user's text instruction should alter or modify the image. Generate a new image that meets the user's requirements while maintaining consistency with the original input where appropriate.\",\n        \"clip\": [\"2\", 0],\n        \"vae\": [\"3\", 0],\n        \"vl_resize_image1\": [\"47\", 0]\n      },\n      \"class_type\": \"TextEncodeQwenImageEditPlusAdvance_lrzjason\"\n    },\n    \"2\": {\n      \"inputs\": {\n        \"clip_name\": \"qwen_2.5_vl_7b_fp8_scaled.safetensors\",\n        \"type\": \"qwen_image\",\n        \"device\": \"default\"\n      },\n      \"class_type\": \"CLIPLoader\"\n    },\n    \"3\": {\n      \"inputs\": {\n        \"vae_name\": \"qwen_image_vae.safetensors\"\n      },\n      \"class_type\": \"VAELoader\"\n    },\n    \"6\": {\n      \"inputs\": {\n        \"seed\": \"{{ Math.floor(Math.random() * 1000000000000000) }}\",\n        \"steps\": 8,\n        \"cfg\": 1,\n        \"sampler_name\": \"er_sde\",\n        \"scheduler\": \"simple\",\n        \"denoise\": 1,\n        \"model\": [\"35\", 0],\n        \"positive\": [\"1\", 0],\n        \"negative\": [\"7\", 0],\n        \"latent_image\": [\"1\", 1]\n      },\n      \"class_type\": \"KSampler\"\n    },\n    \"7\": {\n      \"inputs\": {\n        \"conditioning\": [\"1\", 0]\n      },\n      \"class_type\": \"ConditioningZeroOut\"\n    },\n    \"8\": {\n      \"inputs\": {\n        \"unet_name\": \"Qwen-Image-Edit-2509_fp8_e4m3fn.safetensors\",\n        \"weight_dtype\": \"fp8_e4m3fn\"\n      },\n      \"class_type\": \"UNETLoader\"\n    },\n    \"9\": {\n      \"inputs\": {\n        \"samples\": [\"6\", 0],\n        \"vae\": [\"3\", 0]\n      },\n      \"class_type\": \"VAEDecode\"\n    },\n    \"15\": {\n      \"inputs\": {\n        \"lora_name\": \"Qwen-Image-Lightning-8steps-V1.1.safetensors\",\n        \"strength_model\": 1.0,\n        \"model\": [\"8\", 0]\n      },\n      \"class_type\": \"LoraLoaderModelOnly\"\n    },\n    \"17\": {\n      \"inputs\": {\n        \"model_name\": \"qwen\\\\Qwen-Image-Edit-2509-Q4_0.gguf\",\n        \"extra_model_name\": \"none\",\n        \"dequant_dtype\": \"default\",\n        \"patch_dtype\": \"default\",\n        \"patch_on_device\": false,\n        \"enable_fp16_accumulation\": false,\n        \"attention_override\": \"none\"\n      },\n      \"class_type\": \"GGUFLoaderKJ\"\n    },\n    \"29\": {\n      \"inputs\": {\n        \"lora_name\": \"white_to_scene.safetensors\",\n        \"strength_model\": 0.8,\n        \"model\": [\"15\", 0]\n      },\n      \"class_type\": \"LoraLoaderModelOnly\"\n    },\n    \"34\": {\n      \"inputs\": {\n        \"shift\": 3,\n        \"model\": [\"29\", 0]\n      },\n      \"class_type\": \"ModelSamplingAuraFlow\"\n    },\n    \"35\": {\n      \"inputs\": {\n        \"strength\": 1,\n        \"model\": [\"34\", 0]\n      },\n      \"class_type\": \"CFGNorm\"\n    },\n    \"47\": {\n      \"inputs\": {\n        \"model\": \"RMBG-2.0\",\n        \"sensitivity\": 1,\n        \"process_res\": 1024,\n        \"mask_blur\": 0,\n        \"mask_offset\": 0,\n        \"invert_output\": false,\n        \"refine_foreground\": false,\n        \"background\": \"Color\",\n        \"background_color\": \"#222222\",\n        \"image\": [\"82\", 0]\n      },\n      \"class_type\": \"RMBG\"\n    },\n    \"49\": {\n      \"inputs\": {\n        \"image\": \"{{ $json.image_filename }}\"\n      },\n      \"class_type\": \"LoadImage\"\n    },\n    \"54\": {\n      \"inputs\": {\n        \"filename_prefix\": \"Aliexpress_Result\",\n        \"images\": [\"9\", 0]\n      },\n      \"class_type\": \"SaveImage\"\n    },\n    \"59\": {\n      \"inputs\": {\n        \"images\": [\"47\", 0]\n      },\n      \"class_type\": \"PreviewImage\"\n    },\n    \"82\": {\n      \"inputs\": {\n        \"width\": 1080,\n        \"height\": 1920,\n        \"upscale_method\": \"lanczos\",\n        \"keep_proportion\": \"pad\",\n        \"pad_color\": \"0, 0, 0\",\n        \"crop_position\": \"center\",\n        \"divisible_by\": 2,\n        \"device\": \"cpu\",\n        \"image\": [\"49\", 0]\n      },\n      \"class_type\": \"ImageResizeKJv2\"\n    }\n  },\n  \"client_id\": \"n8n\"\n}",
+        "options": {}
+      },
+      "id": "33e9b5c8-7e38-46b1-b21a-6e125c82bfeb",
+      "name": "Upload To ComfyUI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -840,
+        1040
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5a3f0a51-346e-4342-abc5-373169dd5f80",
+              "name": "image_filename",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "6ffac232-8342-4985-8b16-eca96abe68a7",
+              "name": "prompt",
+              "value": "={{ $('Code5').item.json.prompt }}",
+              "type": "string"
+            },
+            {
+              "id": "74afd65c-a275-4da9-85dd-474255b934db",
+              "name": "session_id",
+              "value": "=session_{{ new Date().getTime() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeBinary": true
+        }
+      },
+      "id": "7be8db8d-88b7-4d5c-bee9-bd5ab59311d7",
+      "name": "Prepare data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        -1300,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "id": "e8590335-7d8a-4c30-add4-d00a81297f87",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -400,
+        1040
+      ],
+      "webhookId": "98bee781-d522-4edf-8fed-4b8a6583dc52"
+    },
+    {
+      "parameters": {
+        "url": "https://kg8nnxtvy71gpn-8188.proxy.runpod.net/history",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "c5ac0d8e-beb8-42e9-90e8-4bd3faf5786b",
+      "name": "Controllo Stato",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -140,
+        1060
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "2b13ff8c-d408-4742-9bd7-061c64994039",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1260,
+        1060
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kg8nnxtvy71gpn-8188.proxy.runpod.net/upload/image",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "image",
+              "inputDataFieldName": "image"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4b42e76a-be3b-4b87-996b-bde9cfade037",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1880,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const fullHistory = $json;\nconst promptIds = Object.keys(fullHistory);\n\nif (promptIds.length === 0) {\n  return { json: { success: false, error: \"History vuota\" } };\n}\n\nconst sortedIds = promptIds.sort((a, b) => {\n  const timeA = fullHistory[a].prompt?.[1] || 0;\n  const timeB = fullHistory[b].prompt?.[1] || 0;\n  return timeB - timeA;\n});\n\nconst latestPromptId = sortedIds[0];\nconst promptData = fullHistory[latestPromptId];\n\nif (!promptData.outputs) {\n  console.log(\"Outputs non disponibili\");\n  return {\n    json: {\n      success: false,\n      error: \"Timeout: ComfyUI non ha completato la generazione\"\n    }\n  };\n}\n\nconst outputs = promptData.outputs;\nconst images = [];\nconst saveImageNodes = ['54', '65', '69'];\n\nfor (const nodeId of saveImageNodes) {\n  if (outputs[nodeId]?.images && Array.isArray(outputs[nodeId].images)) {\n    outputs[nodeId].images.forEach(img => {\n      if (img.type === 'output' || !img.type) {\n        images.push({\n          filename: img.filename,\n          subfolder: img.subfolder || '',\n          type: img.type || 'output',\n          node_id: nodeId\n        });\n      }\n    });\n  }\n}\n\nif (images.length === 0) {\n  return {\n    json: {\n      success: false,\n      error: \"Nessuna immagine trovata\"\n    }\n  };\n}\n\nconsole.log(`✅ Trovate ${images.length} immagini!`);\n\nreturn {\n  json: {\n    success: true,\n    images: images,\n    session_id: `session_${Date.now()}`,\n    total_images: images.length,\n    prompt_id: latestPromptId\n  }\n};\n"
+      },
+      "id": "24bb1676-655e-4953-a258-451f6cb78331",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        460
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Estrai base64 dal JSON\nconst base64Data = $json.image || $json.body.image;\n\n// Rimuovi eventuale prefisso data:image/...\nconst base64Clean = base64Data.replace(/^data:image\\/\\w+;base64,/, '');\n\n// Converti in buffer binario\nconst buffer = Buffer.from(base64Clean, 'base64');\n\nreturn {\n  json: {\n    prompt: $json.prompt || $json.body.prompt\n  },\n  binary: {\n    image: {\n      data: buffer,\n      mimeType: 'image/jpeg',\n      fileName: 'product.jpg',\n      fileExtension: 'jpg'\n    }\n  }\n};\n"
+      },
+      "id": "14dc47e4-42cf-4807-b33d-9b8442cfc482",
+      "name": "Code5",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2400,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Salva il prompt_id di ComfyUI per controllarlo dopo\nconst response = $json;\n\nif (!response.prompt_id) {\n  throw new Error('ComfyUI non ha restituito un prompt_id');\n}\n\nconsole.log(`✅ Prompt ID salvato: ${response.prompt_id}`);\n\nreturn {\n  json: {\n    ...items[0].json,\n    comfyui_prompt_id: response.prompt_id\n  }\n};"
+      },
+      "id": "183e7af0-2a7a-45dc-84c3-ce6df89a3222",
+      "name": "Code1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -620,
+        1040
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Recuperiamo la cronologia completa da questo nodo\nconst history = $json.body || $json;\n\n// 2. Recuperiamo l'ID del lavoro che abbiamo lanciato all'inizio\n// n8n ci permette di leggere i dati dei nodi precedenti\n// Assicurati che il nome del nodo tra parentesi sia ESATTO: 'Upload To ComfyUI'\nconst originalPromptId = $('Upload To ComfyUI').first().json.prompt_id;\n\nconsole.log(\"Cerco ID:\", originalPromptId);\n\n// 3. Cerchiamo quel lavoro specifico nella history\nconst targetRun = history[originalPromptId];\n\n// Se non esiste ancora o non ha output, aspettiamo\nif (!targetRun || !targetRun.outputs) {\n    return [{ json: { ready: false } }];\n}\n\n// 4. Estraiamo le immagini\nconst itemsToSend = [];\n\nfor (const nodeId in targetRun.outputs) {\n    const nodeOutput = targetRun.outputs[nodeId];\n    if (nodeOutput.images) {\n        nodeOutput.images.forEach(img => {\n             // Prendiamo solo i file di output (non le preview temp)\n            if (img.type === 'output') {\n                itemsToSend.push({\n                    json: {\n                        ready: true,\n                        filename: img.filename,\n                        subfolder: img.subfolder || '',\n                        type: img.type,\n                        session_id: originalPromptId\n                    }\n                });\n            }\n        });\n    }\n}\n\n// Se non c'è nulla, riprova\nif (itemsToSend.length === 0) {\n    return [{ json: { ready: false } }];\n}\n\nreturn itemsToSend;"
+      },
+      "id": "e9eb85b5-5fe1-4d66-b875-33b67a217e5f",
+      "name": "Code2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        1040
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "6ac33efa-2615-4ae4-ad7d-714e2fe0b932",
+              "leftValue": "={{ $json.ready }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "793665dd-e52e-4b13-8144-53de03200d1e",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        420,
+        1040
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-images-2",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1c9fe123-3713-4f51-8d31-639beafce455",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2760,
+        940
+      ],
+      "webhookId": "9b526f97-7c32-462d-8fad-1a5bd8276aaf"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/tmp/comfyui/output/{{ $json.filename }}",
+        "options": {}
+      },
+      "id": "8c2e4e1b-5f87-4fe3-b5c1-ec94eee2b962",
+      "name": "Read/Write Files from Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        640,
+        940
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const imagesList = [];\nfor (const item of items) {\n  if (item.binary && item.binary.data) {\n    imagesList.push(item.binary.data.data);\n  }\n}\nreturn [{\n    json: {\n      success: true,\n      images: imagesList,\n      session_id: items[0].json.session_id\n    }\n}];"
+      },
+      "id": "7c7d13f2-5900-4936-a20b-8d1a12abd8de",
+      "name": "Code3",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        940
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Prepare data": {
+      "main": [
+        [
+          {
+            "node": "Upload To ComfyUI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload To ComfyUI": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Controllo Stato",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Controllo Stato": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Prepare data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code5": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "761f7740-4d40-4579-8c36-ff7b0635407c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "673306e7388f18e9a5fc3387406046bc8324320491e8edb1dccac5593575f075"
+  },
+  "id": "d0TBce3AgHuow1fA",
+  "tags": []
+}

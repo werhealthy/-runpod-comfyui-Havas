@@ -1,0 +1,117 @@
+{
+  "name": "[ALIEXPRESS] 03 - Final Composer",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "binary",
+        "responseDataSource": "set",
+        "options": {}
+      },
+      "id": "f1011134-6681-4070-a494-5cda9a957414",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2040,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://dischargeable-noninterdependent-sherry.ngrok-free.dev/render-video",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "allowUnauthorizedCerts": false
+        }
+      },
+      "id": "c80d537c-777e-47b1-968f-b72b80c9620c",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1640,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-final-video",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "6c6db777-cca0-4eef-a0db-c7d9445d6dfe",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        260
+      ],
+      "webhookId": "74262d2a-1428-49ad-afc6-513814465491"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recuperiamo i dati che arrivano dal Webhook (Gradio)\n// A volte sono dentro 'body', a volte nella root. Controlliamo.\nconst inputData = items[0].json.body || items[0].json;\n\n// Creiamo l'oggetto pulito per Windows\nconst payload = {\n  video_url: inputData.video_url,\n  product_name: inputData.product_name,\n  // Passiamo la lista hero_lines direttamente\n  hero_lines: inputData.hero_lines,\n  // Forziamo la conversione in numeri (se vuoti, usa i default)\n  x_head: Number(inputData.x_head || 50),\n  y_head: Number(inputData.y_head || 15)\n};\n\nreturn {\n  json: payload\n};"
+      },
+      "id": "b1f5f0e8-b712-453a-b36a-d5857e9da6ae",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1260,
+        260
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "91aace33-a550-4cac-b314-b16214bd7663",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "673306e7388f18e9a5fc3387406046bc8324320491e8edb1dccac5593575f075"
+  },
+  "id": "fPq4mAzVqeZuypW9",
+  "tags": []
+}
