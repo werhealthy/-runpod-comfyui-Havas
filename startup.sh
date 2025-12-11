@@ -14,12 +14,12 @@ apt-get update
 
 echo ">>> Installo tool di sistema minimi (debug, processi, rete)..."
 apt-get install -y --no-install-recommends \
-  procps \        # ps, pgrep, pkill, top...
-  lsof \          # vedere chi usa una porta
-  iproute2 \      # comando ss
-  net-tools \     # netstat, ifconfig (fallback)
-  curl \          # download file (se non già presente)
-  git             # clonare repo (per sicurezza)
+  procps \
+  lsof \
+  iproute2 \
+  net-tools \
+  curl \
+  git
 
 echo ">>> Tool di sistema minimi installati."
 echo
