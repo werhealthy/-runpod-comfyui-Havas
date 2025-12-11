@@ -162,14 +162,23 @@ cd /tmp
 # 4. FRONTEND ALIEXPRESS (Gradio)
 ###############################################
 
+###############################################
+# 4. FRONTEND ALIEXPRESS (Gradio)
+###############################################
+
 echo "🔧 Setup frontend AliExpress..."
 
 FRONTEND_DIR="$COMFY_DIR/frontends/aliexpress"
 mkdir -p "$FRONTEND_DIR"
 
 APP_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress/app.py"
+ICON_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/logo.png"
+
 echo "📥 Scarico app.py AliExpress..."
 curl -fSL "$APP_URL" -o "$FRONTEND_DIR/app.py" || echo "⚠️ Errore download app.py"
+
+echo "🖼️ Scarico icona AliExpress (logo.png)..."
+curl -fSL "$ICON_URL" -o "$FRONTEND_DIR/logo.png" || echo "⚠️ Errore download logo.png"
 
 echo "📦 Installo requirements frontend AliExpress..."
 pip install -q --no-cache-dir gradio requests || true
