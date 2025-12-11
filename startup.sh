@@ -6,6 +6,25 @@ echo "  🚀 Avvio ComfyUI template Havas"
 echo "==============================="
 
 ########################################
+# 0. INSTALLA TOOL DI SISTEMA MINIMI
+########################################
+
+echo ">>> Aggiorno repository apt..."
+apt-get update
+
+echo ">>> Installo tool di sistema minimi (debug, processi, rete)..."
+apt-get install -y --no-install-recommends \
+  procps \        # ps, pgrep, pkill, top...
+  lsof \          # vedere chi usa una porta
+  iproute2 \      # comando ss
+  net-tools \     # netstat, ifconfig (fallback)
+  curl \          # download file (se non già presente)
+  git             # clonare repo (per sicurezza)
+
+echo ">>> Tool di sistema minimi installati."
+echo
+
+########################################
 # 1. PATH E STRUTTURA CARTELLE
 ########################################
 
@@ -42,8 +61,6 @@ if [ -f "requirements.txt" ]; then
   pip install --no-cache-dir -r requirements.txt
 fi
 
-
-
 ########################################
 # 3. ALIAS restartcomfy
 ########################################
@@ -60,13 +77,8 @@ echo "alias restartcomfy='/usr/local/bin/restart-comfyui.sh'" >> /root/.bashrc
 echo "🔧 Installazione ComfyUI-Manager..."
 MANAGER_DIR="$CUSTOM_NODES_DIR/ComfyUI-Manager"
 if [ ! -d "$MANAGER_DIR/.git" ]; then
-  git clone --depth=1 https://github.com/ltdrdata/ComfyUI-Manager.git "$MANAGER_DIR"
-  if [ -f "$MANAGER_DIR/requirements.txt" ]; then
-    pip install -q --no-cache-dir -r "$MANAGER_DIR/requirements.txt"
-  fi
-else
-  echo "✓ ComfyUI-Manager già presente"
-fi
+  git clone --depth=1 https://github.
+
 
 ########################################
 # 5. extra_model_paths.yaml (base vuota)
