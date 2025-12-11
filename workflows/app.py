@@ -305,6 +305,12 @@ theme = gr.themes.Soft(
 )
 
 custom_css = """
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
+
+.gradio-container {
+  font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
 :root {
   --brand-red: #E20800;
   --brand-black: #111111;
@@ -320,13 +326,13 @@ custom_css = """
 #header-row {
   display: flex;
   justify-content: flex-start;
-  padding-left: 24px;           /* stesso offset delle tab Immagine/Video/Testi */
+  padding-left: 24px;
   margin-bottom: 16px;
 }
 
 #logo-img {
   margin: 0 !important;
-  padding: 0 !important;
+  padding: -40 !important;
   max-width: 200px;
 }
 
@@ -348,9 +354,15 @@ custom_css = """
   display: none !important;
 }
 
+/* Placeholder più chiaro ovunque */
+.gradio-container ::placeholder {
+  color: #BCBCBC !important;
+  opacity: 1 !important;
+}
+
 /* dimensione precisa del logo */
 #logo-img img {
-  height: 20px !important;      /* regola qui la dimensione del logo */
+  height: 17px !important;
   width: auto !important;
   object-fit: contain !important;
   margin: 0 !important;
@@ -458,7 +470,7 @@ button.gr-button:not(.primary) {
   font-size: 16px !important;
   width: 40px !important;
   min-width: 40px !important;
-  height: 44px !important;            /* altezza simile al textbox */
+  height: 44px !important;
   padding: 0 !important;
   display: flex !important;
   align-items: center !important;
@@ -474,6 +486,7 @@ input[type="range"]::-moz-range-track {
   background: #E5E5E5;
 }
 """
+
 
 with gr.Blocks(
     title="Executive Tool 001: Aliexpress Video",
