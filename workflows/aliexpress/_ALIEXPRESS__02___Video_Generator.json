@@ -1,5 +1,5 @@
 {
-  "name": "_ALIEXPRESS__02___Video_Generator.json",
+  "name": "_ALIEXPRESS__02___Video_Generator",
   "nodes": [
     {
       "parameters": {
@@ -7,13 +7,13 @@
         "responseBody": "={\n  \"video_url\": \"{{ $('Get video').first().json.video.url }}\" \n}",
         "options": {}
       },
-      "id": "b94acde9-6dc0-42b5-be44-5682857316a4",
+      "id": "23ee5fb3-b05c-44f1-906f-f7a0c29546b6",
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        3160,
-        320
+        460,
+        460
       ]
     },
     {
@@ -22,26 +22,26 @@
         "fileName": "=/tmp/comfyui/output/video_{{$json.image_filename}}.mp4",
         "options": {}
       },
-      "id": "812da005-d4a6-4901-9986-82ddbedd25e4",
+      "id": "9d40d6e1-f130-4965-aa06-5ba785f97174",
       "name": "Salva video",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
       "position": [
-        2740,
-        360
+        40,
+        500
       ]
     },
     {
       "parameters": {
-        "jsCode": "// TRASFORMAZIONE IN BASE64 (Elimina la necessità di upload file)\nconst binaryProp = items[0].binary.data;\n\nif (!binaryProp) throw new Error(\"❌ NESSUN FILE TROVATO: Controlla il nodo precedente!\");\n\nconst base64String = binaryProp.data;\nconst mimeType = binaryProp.mimeType || 'image/png';\n\nreturn {\n  json: {\n    // Creiamo la stringa Data URI che contiene l'immagine intera\n    data_uri: `data:${mimeType};base64,${base64String}`,\n    // Passiamo avanti i dati del prompt\n    prompt: $('Webhook').first().json.body.prompt || \"Cinematic zoom\",\n    session_id: $('Webhook').first().json.body.session_id,\n    image_filename: $('Webhook').first().json.body.image_filename\n  }\n};"
+        "jsCode": "// TRASFORMAZIONE IN BASE64\n// Verifica che il file binario esista\nconst binaryProp = items[0].binary ? items[0].binary.data : null;\n\nif (!binaryProp) {\n  throw new Error(\"❌ NESSUN FILE TROVATO: Il nodo Webhook non ha ricevuto l'immagine nel campo 'data'.\");\n}\n\nconst base64String = binaryProp.data;\nconst mimeType = binaryProp.mimeType || 'image/png';\n\n// Recuperiamo i dati dal body del Webhook\nconst inputBody = $('Webhook').first().json.body || $('Webhook').first().json;\nconst rawModel = $('Webhook').first().json.body.model_type;\n\n// Normalizza sempre a stringa \"kling\" / \"svd\"\nlet model_type = \"kling\"; // ✅ default\nif (rawModel !== undefined && rawModel !== null && rawModel !== \"\") {\n  const s = String(rawModel).toLowerCase();\n  if (s.includes(\"svd\") || s === \"2\") model_type = \"svd\";\n  if (s.includes(\"kling\") || s === \"1\") model_type = \"kling\";\n}\n\nreturn {\n  json: {\n    data_uri: `data:${mimeType};base64,${base64String}`,\n    prompt: $('Webhook').first().json.body.prompt || \"Cinematic zoom\",\n    session_id: $('Webhook').first().json.body.session_id,\n    image_filename: $('Webhook').first().json.body.image_filename,\n    model_type, // ✅ aggiunto\n  }\n};\n"
       },
-      "id": "f49316b1-fc27-4f03-9133-a51d5ac2b613",
+      "id": "e43e5e0e-1087-4063-a93d-86cf65734fff",
       "name": "Prepare Base64",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -40,
-        440
+        -2960,
+        580
       ]
     },
     {
@@ -84,13 +84,13 @@
         },
         "options": {}
       },
-      "id": "ba3905df-1302-45f8-8b27-7f7eb7b18dec",
+      "id": "60556494-7396-4551-89ec-5a64788b3a9d",
       "name": "Start Kling",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        180,
-        440
+        -2520,
+        580
       ]
     },
     {
@@ -98,48 +98,31 @@
         "amount": 30,
         "unit": "seconds"
       },
-      "id": "3fc1fb02-5d39-4276-a7a9-739f639516b9",
+      "id": "92d5e249-1a31-41c2-b487-280d9c26d47b",
       "name": "Wait Loop",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1,
       "position": [
-        400,
-        440
+        -2300,
+        580
       ]
     },
     {
       "parameters": {
         "jsCode": "// VERSIONE DEBUG: Valori fissi per testare solo la connessione\nreturn {\n  json: {\n    session_id: \"test_session_123\",  // Valore finto\n    image_filename: \"video_test.mp4\" // Valore finto\n  },\n  // Questo è l'importante: passiamo il file video scaricato dal nodo precedente\n  binary: items[0].binary \n};"
       },
-      "id": "1d386c4d-e097-433b-a308-bbbc8ccd2ec5",
+      "id": "da65ff70-69cb-49e0-b3db-565ea172a5b6",
       "name": "Restore Info",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1540,
-        380
+        -1160,
+        520
       ]
     },
     {
       "parameters": {
-        "httpMethod": "POST",
-        "path": "generate-video",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "id": "01f97c0a-8707-447d-b680-9535f6cc6818",
-      "name": "Webhook",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2,
-      "position": [
-        -720,
-        420
-      ],
-      "webhookId": "005844b0-3fd8-40ec-a828-c0f1b6d44b33"
-    },
-    {
-      "parameters": {
-        "url": "={{ $('Start Kling').first().json.status_url }}",
+        "url": "={{ $json.status_url }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -151,13 +134,13 @@
         },
         "options": {}
       },
-      "id": "984bd83d-0544-4891-b268-7a1aba338f12",
+      "id": "3b94633e-cae4-4fa4-b825-7a82ddd6e6ff",
       "name": "Check Status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        620,
-        440
+        -2080,
+        580
       ],
       "retryOnFail": false,
       "onError": "continueRegularOutput"
@@ -185,13 +168,13 @@
         },
         "options": {}
       },
-      "id": "080216af-e381-44f7-9049-bdea55c0eb5e",
+      "id": "a24bd97e-38d1-461d-84cc-b791f97c90be",
       "name": "Is Finished?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        840,
-        440
+        -1860,
+        580
       ]
     },
     {
@@ -199,13 +182,13 @@
         "url": "={{ $json.response_url }}",
         "options": {}
       },
-      "id": "d1750d3c-3298-400a-9c1f-08012af787a7",
+      "id": "b843c460-b565-479f-be10-0d99e3e599ed",
       "name": "Get video",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1060,
-        340
+        -1640,
+        480
       ]
     },
     {
@@ -213,13 +196,130 @@
         "url": "={{ $json.video.url }}",
         "options": {}
       },
-      "id": "232da82c-1684-4fc1-94f3-90798554b843",
+      "id": "a61030ae-65f4-473f-bc65-c5308e4e561e",
       "name": "Download Video",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        1320,
-        380
+        -1380,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-video",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "0521439d-04ed-476b-9fa9-1b62e936a129",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -3640,
+        560
+      ],
+      "webhookId": "005844b0-3fd8-40ec-a828-c0f1b6d44b33"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.model_type }}",
+                    "rightValue": "kling",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "3171ec2b-8d9f-4f50-8698-688dc64f5fa7",
+                    "leftValue": "={{ $json.model_type }}",
+                    "rightValue": "svd",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "375da2d9-ebd4-4693-9904-0ed466d1122a",
+      "name": "Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        -2740,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://queue.fal.run/fal-ai/fast-svd",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Key b457075b-89c3-4986-a68a-09753f374c83:dc4f7f9452471d2de92985c02ed5cdae"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "={{ $json.prompt }}"
+            },
+            {
+              "name": "image_url",
+              "value": "={{ $json.data_uri }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "89068a1d-05a3-4378-8e12-4de3f252d537",
+      "name": "Start fast-svd",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -2520,
+        780
       ]
     }
   ],
@@ -240,7 +340,7 @@
       "main": [
         [
           {
-            "node": "Start Kling",
+            "node": "Switch",
             "type": "main",
             "index": 0
           }
@@ -274,17 +374,6 @@
         [
           {
             "node": "Salva video",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Webhook": {
-      "main": [
-        [
-          {
-            "node": "Prepare Base64",
             "type": "main",
             "index": 0
           }
@@ -341,17 +430,57 @@
           }
         ]
       ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Base64",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Start Kling",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Start fast-svd",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start fast-svd": {
+      "main": [
+        [
+          {
+            "node": "Wait Loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "52d68772-91b7-4b46-ae80-62a69d36bac8",
+  "versionId": "fd654f87-2447-45c6-92f9-730080913e93",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "673306e7388f18e9a5fc3387406046bc8324320491e8edb1dccac5593575f075"
   },
-  "id": "q9aKofyvAClcN9eZ",
+  "id": "KEgeoscbsUr3LnCQ",
   "tags": []
 }
