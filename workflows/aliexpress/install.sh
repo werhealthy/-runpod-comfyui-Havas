@@ -173,9 +173,13 @@ mkdir -p "$FRONTEND_DIR"
 
 APP_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/aliexpress/app.py"
 ICON_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/logo.png"
+BAIKAL_URL="https://raw.githubusercontent.com/werhealthy/-runpod-comfyui-Havas/refs/heads/main/workflows/BaikalExp-Medium.otf"
 
 echo "📥 Scarico app.py AliExpress..."
 curl -fSL "$APP_URL" -o "$FRONTEND_DIR/app.py" || echo "⚠️ Errore download app.py"
+
+echo "🔤 Scarico font BaikalExp-Medium.otf..."
+curl -fSL "$BAIKAL_URL" -o "$FRONTEND_DIR/BaikalExp-Medium.otf" || echo "⚠️ Errore download BaikalExp-Medium.otf"
 
 echo "🖼️ Scarico icona AliExpress (logo.png)..."
 curl -fSL "$ICON_URL" -o "$FRONTEND_DIR/logo.png" || echo "⚠️ Errore download logo.png"
